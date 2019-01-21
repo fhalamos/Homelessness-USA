@@ -110,12 +110,13 @@ h_2007<- h_2007 %>% select(Total_homeless) %>% mutate(Year = 2007)%>% tail(1)
 
 #Merging all data of years in one data frame
 all_years <- rbind.fill(h_2018,h_2017,h_2016,h_2015,h_2014,h_2013,h_2012,h_2011,h_2010,h_2009,h_2008,h_2007)
+all_years <- mutate(all_years, Total_homeless = as.numeric(Total_homeless))
 
 #Plotting total n_homeless for different years
 homeless_time_plot<-ggplot(data=all_years, aes(x=Year, y=Total_homeless,group = 1))+
   geom_line(linetype = "solid",color="red")+
   geom_point(color = "red")+
-  scale_y_discrete(name="Number of homeless")+
+  scale_y_continuous(name="Number of homeless")+
   scale_x_continuous(breaks = c(2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018))+
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+ #Rotate x axis text
   labs(title = "Homeless in USA last decade",
