@@ -46,7 +46,7 @@ homeless_to_coc<- pit_by_state %>% mutate(ratio_h_coc = Overall.Homeless..2018/N
 
 ratio_h_coc_plot<-ggplot(data=homeless_to_coc, aes(x=State, y=ratio_h_coc, color=ratio_h_coc))+
   geom_point()+
-  geom_label(aes(label=State), data = homeless_to_coc[homeless_to_coc$State %in% statesToLabel,])+
+  geom_label(aes(label=State), vjust = -0.5, data = homeless_to_coc[homeless_to_coc$State %in% statesToLabel,])+
   scale_y_continuous(name="Ratio n homeless to n CoC", labels=comma)+#avoid scientific notation
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+ #Rotate x axis text
   theme(legend.position="none")+

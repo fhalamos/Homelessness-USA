@@ -8,6 +8,10 @@ Plot visualizes states with highest population of homeless people
 Plot visualizes that those state with highest population of homelessness also have high index of homeless/CoC compared to other states
 
 ## Graph 3. Homeless people across time
-There is a clear decreasement in the homeless population since 2007. Nevertheless, there is an increasement in recent years.
+There is a clear decreasement in the homeless population since 2007. Nevertheless, there is slight increasement in recent years.
+
+Sources:
+U.S. Department of Housing and Urban Development (HUD)
+https://www.hudexchange.info/resource/3031/pit-and-hic-data-since-2007/
 
 Libraries used: plyr, tidyverse, ggplot2, readxl, scales
