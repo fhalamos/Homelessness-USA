@@ -1,0 +1,156 @@
+---
+title: "Homeless in USA"
+author: "Felipe Alamos"
+date: "January 26, 2019"
+output:
+  html_document:
+    code_folding: "hide"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Introduction
+
+This project presents homelessness in USA
+
+We will be using certain libraries for data manipulation
+
+```{r error=FALSE, warning=FALSE}
+
+library(rmarkdown)
+library(tidyverse)
+library(plyr)
+library(ggplot2)
+library(readxl)
+library(scales)
+
+```
+
+## Total number of homelessness in time (Plot 1)
+
+The following plot presents the evolution of...
+
+```{r error=FALSE, warning=FALSE}
+
+
+#Load data
+h_2018 <-read_excel("2007-2018-PIT-Counts-by-State.xlsx", sheet=2)
+h_2017 <-read_excel("2007-2018-PIT-Counts-by-State.xlsx", sheet=3)
+h_2016 <-read_excel("2007-2018-PIT-Counts-by-State.xlsx", sheet=4)
+h_2015 <-read_excel("2007-2018-PIT-Counts-by-State.xlsx", sheet=5)
+h_2014 <-read_excel("2007-2018-PIT-Counts-by-State.xlsx", sheet=6)
+h_2013 <-read_excel("2007-2018-PIT-Counts-by-State.xlsx", sheet=7)
+h_2012 <-read_excel("2007-2018-PIT-Counts-by-State.xlsx", sheet=8)
+h_2011 <-read_excel("2007-2018-PIT-Counts-by-State.xlsx", sheet=9)
+h_2010 <-read_excel("2007-2018-PIT-Counts-by-State.xlsx", sheet=10)
+h_2009 <-read_excel("2007-2018-PIT-Counts-by-State.xlsx", sheet=11)
+h_2008 <-read_excel("2007-2018-PIT-Counts-by-State.xlsx", sheet=12)
+h_2007 <-read_excel("2007-2018-PIT-Counts-by-State.xlsx", sheet=13)
+
+#Rename column of total number of homeless
+names(h_2018)[names(h_2018) == "Overall Homeless, 2018"] <- "Total_homeless"
+names(h_2017)[names(h_2017) == "Overall Homeless, 2017"] <- "Total_homeless"
+names(h_2016)[names(h_2016) == "Overall Homeless, 2016"] <- "Total_homeless"
+names(h_2015)[names(h_2015) == "Overall Homeless, 2015"] <- "Total_homeless"
+names(h_2014)[names(h_2014) == "Overall Homeless, 2014"] <- "Total_homeless"
+names(h_2013)[names(h_2013) == "Overall Homeless, 2013"] <- "Total_homeless"
+names(h_2012)[names(h_2012) == "Overall Homeless, 2012"] <- "Total_homeless"
+names(h_2011)[names(h_2011) == "Overall Homeless, 2011"] <- "Total_homeless"
+names(h_2010)[names(h_2010) == "Overall Homeless, 2010"] <- "Total_homeless"
+names(h_2009)[names(h_2009) == "Overall Homeless, 2009"] <- "Total_homeless"
+names(h_2008)[names(h_2008) == "Overall Homeless, 2008"] <- "Total_homeless"
+names(h_2007)[names(h_2007) == "Overall Homeless, 2007"] <- "Total_homeless"
+
+#Select only total homeless, add year and get only total in country
+h_2018<- h_2018 %>% mutate(Year = 2018)%>% tail(1)
+h_2017<- h_2017 %>% mutate(Year = 2017)%>% tail(1)
+h_2016<- h_2016 %>% mutate(Year = 2016)%>% tail(1)
+h_2015<- h_2015 %>% mutate(Year = 2015)%>% tail(1)
+h_2014<- h_2014 %>% mutate(Year = 2014)%>% tail(1)
+h_2013<- h_2013 %>% mutate(Year = 2013)%>% tail(1)
+h_2012<- h_2012 %>% mutate(Year = 2012)%>% tail(1)
+h_2011<- h_2011 %>% mutate(Year = 2011)%>% tail(1)
+h_2010<- h_2010 %>% mutate(Year = 2010)%>% tail(1)
+h_2009<- h_2009 %>% mutate(Year = 2009)%>% tail(1)
+h_2008<- h_2008 %>% mutate(Year = 2008)%>% tail(1)
+h_2007<- h_2007 %>% mutate(Year = 2007)%>% tail(1)
+
+#Merging all data of years in one data frame
+all_years <- rbind.fill(h_2018,h_2017,h_2016,h_2015,h_2014,h_2013,h_2012,h_2011,h_2010,h_2009,h_2008,h_2007)
+
+#Change variable type of total_homeless
+all_years <- mutate(all_years, Total_homeless = as.numeric(Total_homeless))
+
+#Plotting total n_homeless for different years
+homeless_time_plot<-
+  ggplot(data=all_years, aes(x=Year, y=Total_homeless,group = 1))+
+  geom_line(linetype = "solid",color="red")+
+  geom_point(color = "red")+
+  scale_y_continuous(name="Number of homeless")+
+  scale_x_continuous(breaks = c(2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018))+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+  labs(title = "Decline of total homeless in USA during last decade",
+       subtitle = "Steep decline from  2012-2016. Slight increase in recent years", caption = "Source: U.S. Department of Housing and Urban Development (HUD)",x = "Years")
+
+#Visualize
+plot(homeless_time_plot) #, echo=FALSE
+
+```
+
+##Characterizing homelessness (Plot 2)
+Pie charts of sex, race, childs, chronics, etc.
+
+##Homelessness in different states during 2018 (Plot 3)
+
+We will now compare the different between states respect to number of homeless
+
+```{r error=FALSE, warning=FALSE}
+
+#Load data of number of homeless in states
+pit_by_state <- read_excel("2007-2018-PIT-Counts-by-State.xlsx", sheet=2)
+
+#Fix columns names
+names(pit_by_state)<-make.names(names(pit_by_state),unique = TRUE)
+
+#Do not consider last row of totals
+pit_by_state<- pit_by_state %>% head(-1)
+
+
+
+#Load data of population in states
+population <- read_excel("nst-est2018-01.xlsx", sheet=1, range = "A4:L60")
+colnames(population)[colnames(population)=="X__1"] <- "State"
+population$State <- sub(".", "", population$State)
+population<-tail(population, -5) #Do not consider first elements
+population$State <- state.abb[match(population$State, state.name)] #Change to state codes
+population[9,1] = "DC"
+
+
+#Data frame with homeless population and state population, plus column with homeless every 100,000 citizens
+homeless_and_population <- merge(pit_by_state, population, by = "State", all.y = TRUE) %>% mutate(homeless_per_100000 = Overall.Homeless..2018/`2018`*100000)
+                                                                                                  
+#Plot states vs n_homeless_per_capita
+#statesToLabel <- c("DC","CA","NY","FL","TX","WA","MA")
+
+
+homeless_per_state_2018_plot<-
+  ggplot(data=homeless_and_population, aes(x=reorder(State, -homeless_per_100000), y=homeless_per_100000, fill=homeless_per_100000))+
+  geom_bar(stat = "identity")+
+  #geom_text(aes(label=State), vjust = -0.5, data = homeless_and_population[homeless_and_population$State %in% statesToLabel,])+ 
+  scale_y_continuous(name="Number of homeless every 100,000", labels=comma)+#avoid scientific notation
+  scale_fill_gradient(low = "blue", high = "red",aesthetics = "fill")+
+  theme(axis.text.x = element_text(angle = 90, vjust=-0.001))+ #Rotate x axis text
+  labs(title = "Homeless in U.S. States on 2018",
+       subtitle = "DC highest. Top 5: DC, NY, HI, OR, CA",
+       caption = "Source: U.S. Department of Housing and Urban Development (HUD)", 
+       x = "States")
+
+#Visualize
+plot(homeless_per_state_2018_plot)
+
+```
+
