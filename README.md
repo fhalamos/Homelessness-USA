@@ -1,17 +1,6 @@
 # Homelessness-USA
-Preliminary data visualizations of homeless population in USA
+Data visualizations of homelessness in USA.
+Plots present number of homeless across time and states. Moreover, graphs related to homeless demographics are presented. 
+Moreover, graphs try to visualize relationships between homeless population and other influent variables such as: states resources for homeless programs, states GDP.
 
-## Graph 1: Number of homeless per state in 2018
-Plot visualizes states with highest population of homeless people
-
-## Graph 2: Ratio of number of homeless people to CoC programs in 2018
-Plot visualizes that those state with highest population of homelessness also have high index of homeless/CoC compared to other states
-
-## Graph 3. Homeless people across time
-There is a clear decreasement in the homeless population since 2007. Nevertheless, there is slight increasement in recent years.
-
-Sources:
-U.S. Department of Housing and Urban Development (HUD)
-https://www.hudexchange.info/resource/3031/pit-and-hic-data-since-2007/
-
-Libraries used: plyr, tidyverse, ggplot2, readxl, scales
+Graphs developed in R using followin libraries: plyr, tidyverse, ggplot2, readxl, scales, rmarkdown
