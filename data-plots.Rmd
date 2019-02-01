@@ -31,7 +31,7 @@ library(ggplot2)
 library(readxl)
 library(scales)
 library(extrafont)
-
+library(ggrepel)
 
 #Declaration of color palletes and themes
 
@@ -120,7 +120,7 @@ homeless_time_plot<-
   scale_y_continuous(name="Number of homeless")+
   scale_x_continuous(breaks = c(2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018))+
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
-  labs(title = "Decline of total homeless in USA during last decade",
+  labs(title = "Decline of total homeless in USA during\nlast decade",
        subtitle = "Steep decline from  2012-2016. Slight increase in recent years", caption = "Source: U.S. Department of Housing and Urban Development (HUD)",x = "Years")+
   homeless_theme
 
@@ -160,13 +160,13 @@ alone <- alone_families[1][[1]] /(alone_families[1][[1]] + alone_families[2][[1]
 
 families<- alone_families[2][[1]] /(alone_families[1][[1]] + alone_families[2][[1]])
 
-#Get chronically
-chronical_unchronical<- pit_by_state %>% tail(1) %>% select(Chronically.Homeless..2018, Overall.Homeless..2018
+#Get chornic
+chornic_temporary<- pit_by_state %>% tail(1) %>% select(Chronically.Homeless..2018, Overall.Homeless..2018
 )
 
-chronical_ <- chronical_unchronical[1][[1]] /chronical_unchronical[2][[1]]
-unchronical<- 1-chronical_
-chronical<-chronical_
+chornic_ <- chornic_temporary[1][[1]] /chornic_temporary[2][[1]]
+temporary<- 1-chornic_
+chornic<-chornic_
 
 #Create dataframe for classifications
 c <- matrix(0, ncol = 3, nrow = 0)
@@ -179,45 +179,36 @@ classifications <-
   add_row( Classification="Shelter condition", Quantity=unsh, Type="Unsheltered")%>%
   add_row( Classification="Family state", Quantity=alone, Type="Individuals alone")%>% 
   add_row( Classification="Family state", Quantity=families, Type="Individuals in families")%>%
-  add_row( Classification="Chronical", Quantity=unchronical, Type="Not chronical")%>%
-  add_row( Classification="Chronical", Quantity=chronical, Type="Chronical")%>%
+  add_row( Classification="Chornic", Quantity=temporary, Type="Temporary")%>%
+  add_row( Classification="Chornic", Quantity=chornic, Type="Chornic")%>%
   
   add_row( Classification="Sex", Quantity=0.602, Type="Male")%>%
   add_row( Classification="Sex", Quantity=0.391, Type="Female")%>%
   add_row( Classification="Sex", Quantity=0.007, Type="Other")%>%
-  add_row( Classification="Race", Quantity=0.489, Type="White")%>%
   add_row( Classification="Race", Quantity=0.398, Type="Black or African American")%>%
-  add_row( Classification="Race", Quantity=0.012, Type="Asian")%>%
+  add_row( Classification="Race", Quantity=0.489, Type="White")%>%
   add_row( Classification="Race", Quantity=0.028, Type="Native American")%>%
   add_row( Classification="Race", Quantity=0.012, Type="Asian")%>%
   add_row( Classification="Race", Quantity=0.061, Type="Other races")
 
-#Effor to try to put all following graphs in in grid
-#library(grid)
-#library(gridExtra)
-#p1 <- ggplot(xs$Chronical,aes(y = Quantity, x = "", fill = Type)) +
-#  geom_bar(stat="identity")+
-#  facet_wrap(~ Classification) +
-#  scale_y_continuous(name="Proportion")+
-#  scale_x_discrete(name="")
-
 xs <- split(classifications, f=classifications$Classification)
 
-p <- ggplot(xs$Chronical) +
+p <- ggplot(xs$Chornic) +
   geom_bar(aes(y = Quantity, x = "", fill = Type), stat="identity")+
   scale_x_discrete(name="")+
   scale_y_continuous(name="Proportion")+
-  labs(caption = "Source: U.S. Department of Housing and Urban Development (HUD)")+ coord_polar("y", start=0)+
+  labs(caption = "Source: U.S. Department of Housing and Urban Development (HUD)")+
+  coord_polar("y", start=0)+
   scale_fill_manual(values = cols)+
   homeless_theme
 
-p1 <- p + labs(title = "Homeless are mostly unchronical than chronical", subtitle = "Consistent with theory that homeless is usually not a permanent state")
+p1 <- p + labs(title = "Homeless are mostly temporary than chornic", subtitle = "Consistent with theory that homeless is usually not a permanent state")
 
-p2 <- p %+% xs$`Family state`+labs(title = "Most homeless are alone rather than with families", subtitle = "Observations, particularly in streets, is consisten with data")
+p2 <- p %+% xs$`Family state`+labs(title = "Most homeless are alone rather\nthan with families", subtitle = "Observations, particularly in streets, is consisten with data")
 
-p3 <- p %+% xs$Race+labs(title = "Black/African american dominant race proportionally to US Population", subtitle = "White race is dominant in absolute values")
+p3 <- p %+% xs$Race+labs(title = "Black/African american dominant\nrace proportionally to US Population", subtitle = "White race is dominant in absolute values")
 
-p4 <- p %+% xs$Sex+labs(title = "Altough men are more visible, Woman is still significant proportion of homeless population", subtitle = "40% are woman")
+p4 <- p %+% xs$Sex+labs(title = "Altough men are more visible,\nWoman is still significant proportion of homeless population", subtitle = "40% are woman")
 
 p5 <- p %+% xs$`Shelter condition`+ labs(title = "Most homeless in shelter condition", subtitle = "These may vary depending on season of year")
 
@@ -254,26 +245,31 @@ homeless_and_population <- merge(pit_by_state, population, by = "State", all.y =
 homeless_per_state_2018_plot<-
   ggplot(data=homeless_and_population, aes(x=reorder(State, -homeless_per_100000), y=homeless_per_100000, fill=homeless_per_100000))+
   geom_bar(stat = "identity")+
-  #geom_text(aes(label=State), vjust = -0.5, data = homeless_and_population[homeless_and_population$State %in% statesToLabel,])+ 
-  scale_y_continuous(name="Number of homeless every 100,000", labels=comma)+#avoid scientific notation
-  scale_fill_gradientn(colors = cols,aesthetics = "fill")+
-  theme(axis.text.x = element_text(size=7, angle = 90, vjust=-0.001))+ #Rotate x axis text
-  labs(title = "Significant differences of Homeless/capita in U.S. States on 2018",
+  scale_y_continuous(
+    name="Number of homeless every 100,000",
+    limit = c(0,1000),
+    breaks = c(0,125,250,500,750,1000))+
+  scale_fill_gradientn(
+    colors = cols,
+    aesthetics = "fill")+
+  theme(
+    axis.text.x = element_text(size=7, angle = 90, vjust=-0.001),
+    panel.grid.major.x = element_blank())+ #Rotate x axis text
+  labs(title = "Significant differences of Homeless/capita\nin U.S. States on 2018",
        subtitle = "DC highest. Top 5: DC, NY, HI, OR, CA",
        caption = "Source: U.S. Department of Housing and Urban Development (HUD)", 
        x = "States")+
-    homeless_theme
+  homeless_theme
 
 #Visualize
 plot(homeless_per_state_2018_plot)
-
 ```
 
 ##Homelessness and GDP
 During the following study we will try to understand if rich states experience more or less homelessness. Generally speaking, we can see that there is no trend.
 
 
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE}
 
 #Load data of GDP per states
 gdp_state <- read_excel("Data/qgdpstate1118.xlsx", sheet=4, range = "A5:H64")
@@ -318,7 +314,7 @@ homeless_and_gdp_plot<-
   geom_text(aes(label=State), vjust = -0.5)+
   scale_y_continuous(name="Homeless every 100,000 people")+
   scale_x_continuous(name="GDP per capita (thousands USD)")+
-  labs(title = "No relationship between homeless and GDP per capita",
+  labs(title = "No relationship between homeless and\nGDP per capita",
        subtitle = "States with significant difference in GDP/capita may experience same level of homelessness", caption = "Source: U.S. HUD, U.S. Bureau of Economic Analysis")+
   homeless_theme
 
@@ -343,37 +339,36 @@ grants_by_state <- grants %>%
 
 homeless_and_grants <- merge(grants_by_state, pit_by_state)
 
+CA_NY_labels <- c("CA","NY")
+
 homeless_and_grants_plot<-
-  ggplot(homeless_and_grants, aes(x=Overall.Homeless..2018, y=`Award Amount`))+
+  ggplot(homeless_and_grants,
+         aes(x=Overall.Homeless..2018, y=`Award Amount`/1000000))+
   geom_point(color=cols[2])+
   geom_smooth(color=cols[1])+
-  geom_text(aes(label=State), vjust = -0.5)+
-  scale_x_continuous(name="Total homeless",labels=comma)+
-  scale_y_continuous(name="Funding for Homeless Programs (USD)",labels=comma)+
-  labs(title = "Funding for homeless programs is effectively proportional to number of homeless",
-       subtitle = "Significant difference of funding observed for CA and NY, corresponding to the states with highes homeless population", caption = "Source: U.S. HUD, U.S. Bureau of Economic Analysis")+
+  geom_text(data = homeless_and_grants[homeless_and_grants$State %in% CA_NY_labels,], aes(label=State), vjust = -0.5)+
+  scale_x_continuous(name="",labels=comma)+
+  scale_y_continuous(name="",labels=comma)+
+  theme(axis.title.x=element_blank())+
     homeless_theme
 
-plot(homeless_and_grants_plot)
-
-```
-
-When removing NY and CA, trend keeps for other states. This reflects a fairly good allocation of resources.
-
-```{r, message=FALSE}
-
-statesNotToLabel <- c("CA","NY")
-
-
-ggplot(data = homeless_and_grants[!homeless_and_grants$State %in% statesNotToLabel,],
-       aes(x=Overall.Homeless..2018, y=`Award Amount`))+
+homeless_and_grants_plot_without_outliers <-
+       ggplot(data = homeless_and_grants[!homeless_and_grants$State %in% CA_NY_labels,],
+       aes(x=Overall.Homeless..2018, y=`Award Amount`/1000000))+
   geom_point(color=cols[2])+
   geom_smooth(color=cols[1])+
-  geom_text(aes(label=State), vjust = -0.5)+
+  geom_text_repel(aes(label=State), vjust = -0.5)+
   scale_x_continuous(name="Total homeless",labels=comma)+
-  scale_y_continuous(name="Funding for Homeless Programs (USD)",labels=comma)+
-  labs(title = "When removing outliers, funding for homeless programs keeps proportional to number of homeless through all states",
-       subtitle = "After removing data from CA and NY", caption = "Source: U.S. HUD, U.S. Bureau of Economic Analysis")+
-    homeless_theme
+  scale_y_continuous(name="Funding for Homeless Programs\n(Millions USD)",labels=comma,limit = c(0,140))+
+  labs(title = "Good allocation of homeless resources in states\naccording to homeless population",subtitle = "Especially consistent with CA and NY states with highest funding and highest homeless populations", caption = "Source: U.S. HUD, U.S. Bureau of Economic Analysis")+
+    homeless_theme+
+  annotation_custom(grob=
+                      ggplotGrob(homeless_and_grants_plot),
+                    xmin = 21000,
+                    xmax = 31000,
+                    ymin = 0,
+                    ymax = 60)
+
+plot(homeless_and_grants_plot_without_outliers)
 
 ```
