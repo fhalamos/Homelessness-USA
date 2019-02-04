@@ -160,6 +160,7 @@ subpopulations <- gather(subpopulations, key = "Type", value = "Quantity" ,  1:5
 homeless_subgroups_time_plot<-
   ggplot(subpopulations, aes(x=Year, y=log(Quantity), group =Type,colour = Type))+
   geom_line(linetype = "solid")+
+  geom_point()+
   scale_y_continuous(name="log(Number of homeless)",labels=comma)+
   scale_x_continuous(breaks = c(2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018))+
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
@@ -358,7 +359,7 @@ homeless_and_gdp_plot<-
        aes(x=GDP_per_capita, y=homeless_per_100000))+
   geom_point(color=cols[2])+
   geom_smooth(color=cols[1])+
-  geom_text(aes(label=State), vjust = -0.5)+
+  geom_text_repel(aes(label=State), vjust = -0.5)+
   scale_y_continuous(name="Homeless every 100,000 people")+
   scale_x_continuous(name="GDP per capita (thousands USD)")+
   labs(title = "No relationship between homeless and\nGDP per capita",
@@ -388,6 +389,13 @@ homeless_and_grants <- merge(grants_by_state, pit_by_state)
 
 CA_NY_labels <- c("CA","NY")
 
+states_over_5000 <- pit_by_state %>%
+  filter(Overall.Homeless..2018> 5000) %>%
+  select(State)%>%
+  filter(State!="NY")%>%
+  filter(State!="CA")
+
+
 homeless_and_grants_plot_CA_NY<-
   ggplot(homeless_and_grants,
          aes(x=Overall.Homeless..2018, y=`Award Amount`/1000000))+
@@ -404,15 +412,14 @@ homeless_and_grants_plot_without_outliers <-
        aes(x=Overall.Homeless..2018, y=`Award Amount`/1000000))+
   geom_point(color=cols[2])+
   geom_smooth(color=cols[1])+
-  geom_text_repel(aes(label=State, vjust = -0.5))+
+  geom_text_repel(data = homeless_and_grants[homeless_and_grants$State %in% states_over_5000$State,],aes(label=State, vjust = -0.5))+
   scale_x_continuous(name="Total homeless",labels=comma)+
   scale_y_continuous(name="Funding for Homeless Programs\n(Millions USD)",labels=comma,limit = c(0,140))+
   labs(title = "Good allocation of homeless resources in states\naccording to homeless population",subtitle = "Especially consistent with CA and NY states with highest funding and highest homeless populations", caption = "Source: U.S. HUD, U.S. Bureau of Economic Analysis")+
     homeless_theme+
-  annotation_custom(grob=
-                      ggplotGrob(homeless_and_grants_plot_CA_NY),
-                    xmin = 21000,
-                    xmax = 31000,
+  annotation_custom(grob=                     ggplotGrob(homeless_and_grants_plot_CA_NY),
+                    xmin = 20000,
+                    xmax = 30000,
                     ymin = 0,
                     ymax = 50)
 
