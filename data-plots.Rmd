@@ -1,7 +1,7 @@
 ---
 title: "Homeless in USA"
 author: "Felipe Alamos"
-date: "January 27, 2019"
+date: "February 3, 2019"
 output:
   html_document:
     code_folding: "hide"
@@ -49,15 +49,15 @@ homeless_theme <-
         panel.grid.minor = element_line(size = 0.1),
         panel.background = element_rect(fill='white')
         )
-
 ```
 
-## Total number of homeless in time 
+## Homelessness in time 
 
-A first necessary aproach is to quantify the amount of people experiencing homelessness through time. Generally speaking, the homeless population has had a constant decrease for the last decade. We can observe that from 2012 to 2013 there was a steeper decline. From 2016 to 2018 there has been a slight increase.
+A first necessary aproach is to quantify the amount of people experiencing homelessness through time. We would like to know if the total amount of homeless has increased, decreased or kept constant during last decade. Same question would be inteteresting for evolution of subpopulations of homeless such as: sheltered and unsheltered, those living in families or alone, etc.
+
+Generally speaking, the total homeless population has had a constant decrease for the last decade. We can observe that from 2012 to 2013 there was a steeper decline. From 2016 to 2018 there has been a slight increase.
 
 ```{r, message=FALSE}
-
 
 #Load data
 h_2018 <-read_excel("Data/2007-2018-PIT-Counts-by-State.xlsx", sheet=2)
@@ -73,21 +73,36 @@ h_2009 <-read_excel("Data/2007-2018-PIT-Counts-by-State.xlsx", sheet=11)
 h_2008 <-read_excel("Data/2007-2018-PIT-Counts-by-State.xlsx", sheet=12)
 h_2007 <-read_excel("Data/2007-2018-PIT-Counts-by-State.xlsx", sheet=13)
 
-#Rename column of total number of homeless
-names(h_2018)[names(h_2018) == "Overall Homeless, 2018"] <- "Total_homeless"
-names(h_2017)[names(h_2017) == "Overall Homeless, 2017"] <- "Total_homeless"
-names(h_2016)[names(h_2016) == "Overall Homeless, 2016"] <- "Total_homeless"
-names(h_2015)[names(h_2015) == "Overall Homeless, 2015"] <- "Total_homeless"
-names(h_2014)[names(h_2014) == "Overall Homeless, 2014"] <- "Total_homeless"
-names(h_2013)[names(h_2013) == "Overall Homeless, 2013"] <- "Total_homeless"
-names(h_2012)[names(h_2012) == "Overall Homeless, 2012"] <- "Total_homeless"
-names(h_2011)[names(h_2011) == "Overall Homeless, 2011"] <- "Total_homeless"
-names(h_2010)[names(h_2010) == "Overall Homeless, 2010"] <- "Total_homeless"
-names(h_2009)[names(h_2009) == "Overall Homeless, 2009"] <- "Total_homeless"
-names(h_2008)[names(h_2008) == "Overall Homeless, 2008"] <- "Total_homeless"
-names(h_2007)[names(h_2007) == "Overall Homeless, 2007"] <- "Total_homeless"
+#Select only useful columns
+h_2018<-h_2018 %>% select(1,3,7,8,9,15,25)
+h_2017<-h_2017 %>% select(1,3,7,8,9,15,25)
+h_2016<-h_2016 %>% select(1,3,7,8,9,15,25)
+h_2015<-h_2015 %>% select(1,3,7,8,9,15,25)
+h_2014<-h_2014 %>% select(1,3,7,8,9,15,25)
+h_2013<-h_2013 %>% select(1,3,7,8,9,15,25)
+h_2012<-h_2012 %>% select(1,3,7,8,9,15,25)
+h_2011<-h_2011 %>% select(1,3,7,8,9,15,25)
+h_2010<-h_2010 %>% select(1,3,7,8,9,15,25)
+h_2009<-h_2009 %>% select(1,3,7,8,9,15,25)
+h_2008<-h_2008 %>% select(1,3,7,8,9,15,25)
+h_2007<-h_2007 %>% select(1,3,7,8,9,15,25)
 
-#Select only total homeless, add year and get only total in country
+#Rename column of total number of homeless
+
+names(h_2018) <- c("State","Total_homeless","Sheltered","Unsheltered","Alone","In_families","Chronic")
+names(h_2017) <- c("State","Total_homeless","Sheltered","Unsheltered","Alone","In_families","Chronic")
+names(h_2016) <- c("State","Total_homeless","Sheltered","Unsheltered","Alone","In_families","Chronic")
+names(h_2015) <- c("State","Total_homeless","Sheltered","Unsheltered","Alone","In_families","Chronic")
+names(h_2014) <- c("State","Total_homeless","Sheltered","Unsheltered","Alone","In_families","Chronic")
+names(h_2013) <- c("State","Total_homeless","Sheltered","Unsheltered","Alone","In_families","Chronic")
+names(h_2012) <- c("State","Total_homeless","Sheltered","Unsheltered","Alone","In_families","Chronic")
+names(h_2011) <- c("State","Total_homeless","Sheltered","Unsheltered","Alone","In_families","Chronic")
+names(h_2010) <- c("State","Total_homeless","Sheltered","Unsheltered","Alone","In_families","Chronic")
+names(h_2009) <- c("State","Total_homeless","Sheltered","Unsheltered","Alone","In_families","Chronic")
+names(h_2008) <- c("State","Total_homeless","Sheltered","Unsheltered","Alone","In_families","Chronic")
+names(h_2007) <- c("State","Total_homeless","Sheltered","Unsheltered","Alone","In_families","Chronic")
+
+#Select only totals, add year and get only total in country
 h_2018<- h_2018 %>% mutate(Year = 2018)%>% tail(1)
 h_2017<- h_2017 %>% mutate(Year = 2017)%>% tail(1)
 h_2016<- h_2016 %>% mutate(Year = 2016)%>% tail(1)
@@ -100,17 +115,18 @@ h_2010<- h_2010 %>% mutate(Year = 2010)%>% tail(1)
 h_2009<- h_2009 %>% mutate(Year = 2009)%>% tail(1)
 h_2008<- h_2008 %>% mutate(Year = 2008)%>% tail(1)
 h_2007<- h_2007 %>% mutate(Year = 2007)%>% tail(1)
+
 #Merging all data of years in one data frame
 all_years <- rbind.fill(h_2018,h_2017,h_2016,h_2015,h_2014,h_2013,h_2012,h_2011,h_2010,h_2009,h_2008,h_2007)
 
 #Change variable type of total_homeless
 all_years <- mutate(all_years, Total_homeless = as.numeric(Total_homeless))
+all_years <- mutate(all_years, Unsheltered = as.numeric(Unsheltered))
+all_years <- mutate(all_years, Alone = as.numeric(Alone))
+all_years <- mutate(all_years, In_families = as.numeric(In_families))
+all_years <- mutate(all_years, Chronic = as.numeric(Chronic))
+all_years <- mutate(all_years, Sheltered = as.numeric(Sheltered))
 
-
-
-
-
-#.Font and text size choices for titles, subtitles, captions, labels and annotations
 
 #Plotting total n_homeless for different years
 homeless_time_plot<-
@@ -124,11 +140,36 @@ homeless_time_plot<-
        subtitle = "Steep decline from  2012-2016. Slight increase in recent years", caption = "Source: U.S. Department of Housing and Urban Development (HUD)",x = "Years")+
   homeless_theme
 
+#Visualize
+plot(homeless_time_plot)
+
+
+```
+
+Now we would like to study evolution in time of different homeless populations. Instead of studying total numbers of populations, we will visualize rates of changes in time:
+
+```{r}
+
+subpopulations <-
+  all_years %>%
+  select(3,4,5,6,7,8)
+  
+subpopulations <- gather(subpopulations, key = "Type", value = "Quantity" ,  1:5)
+
+#Plotting total n_homeless for different years
+homeless_subgroups_time_plot<-
+  ggplot(subpopulations, aes(x=Year, y=log(Quantity), group =Type,colour = Type))+
+  geom_line(linetype = "solid")+
+  scale_y_continuous(name="log(Number of homeless)",labels=comma)+
+  scale_x_continuous(breaks = c(2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018))+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
+  labs(title = "Unsheltered, chronic and in families homeless\npresent the biggest rates of decline in last decade",
+       subtitle = "Sheltered and individual homeless decline in constante rate", caption = "Source: U.S. Department of Housing and Urban Development (HUD)",x = "Years")+
+  homeless_theme+
+  scale_color_manual(values = cols)
 
 #Visualize
-plot(homeless_time_plot) #, echo=FALSE
-
-
+plot(homeless_subgroups_time_plot)
 ```
 
 ##Homeless Demographics
@@ -194,17 +235,23 @@ classifications <-
 xs <- split(classifications, f=classifications$Classification)
 
 p <- ggplot(xs$Chornic) +
-  geom_bar(aes(y = Quantity, x = "", fill = Type), stat="identity")+
+  geom_bar(aes(x=1,y=Quantity,fill = Type), stat="identity")+
   scale_x_discrete(name="")+
   scale_y_continuous(name="Proportion")+
   labs(caption = "Source: U.S. Department of Housing and Urban Development (HUD)")+
   coord_polar("y", start=0)+
   scale_fill_manual(values = cols)+
-  homeless_theme
+  homeless_theme#+
+#  geom_text(aes(
+ #   x=1,
+  #  y=ifelse(cumsum(Quantity)=Quantity,0,1),
+   # label=sprintf("%1.2f%%", 100*Quantity)))
 
 p1 <- p + labs(title = "Homeless are mostly temporary than chornic", subtitle = "Consistent with theory that homeless is usually not a permanent state")
 
+
 p2 <- p %+% xs$`Family state`+labs(title = "Most homeless are alone rather\nthan with families", subtitle = "Observations, particularly in streets, is consisten with data")
+
 
 p3 <- p %+% xs$Race+labs(title = "Black/African american dominant\nrace proportionally to US Population", subtitle = "White race is dominant in absolute values")
 
@@ -221,7 +268,7 @@ plot(p5)
 
 ##Homelessness in different states during 2018
 
-We will now compare the amount of homeless between states. DC has the biggest proportion of homeless per capita, doubling the amount of the second bigges (NY). Hawaii, Oregon and California follow. 
+We will now compare the amount of homeless between states. NY and HI present severe rates of homeless per capita. 
 
 ```{r, message=FALSE}
 
@@ -234,11 +281,11 @@ colnames(population)[colnames(population)=="X__1"] <- "State"
 population$State <- sub(".", "", population$State)
 population<-tail(population, -5) #Do not consider first elements
 population$State <- state.abb[match(population$State, state.name)] #Change to state codes
-population[9,1] = "DC"
+#population[9,1] = "DC"
 
 
 #Data frame with homeless population and state population, plus column with homeless every 100,000 citizens
-homeless_and_population <- merge(pit_by_state, population, by = "State", all.y = TRUE) %>% mutate(homeless_per_100000 = Overall.Homeless..2018/`2018`*100000)
+homeless_and_population <- merge(pit_by_state, population, by = "State") %>% mutate(homeless_per_100000 = Overall.Homeless..2018/`2018`*100000)
 #Plot states vs n_homeless_per_capita
 
 
@@ -247,16 +294,17 @@ homeless_per_state_2018_plot<-
   geom_bar(stat = "identity")+
   scale_y_continuous(
     name="Number of homeless every 100,000",
-    limit = c(0,1000),
-    breaks = c(0,125,250,500,750,1000))+
+    limits=c(0,500),
+    breaks = c(0,50,100,200,300,400,500)
+    )+
   scale_fill_gradientn(
     colors = cols,
     aesthetics = "fill")+
   theme(
     axis.text.x = element_text(size=7, angle = 90, vjust=-0.001),
     panel.grid.major.x = element_blank())+ #Rotate x axis text
-  labs(title = "Significant differences of Homeless/capita\nin U.S. States on 2018",
-       subtitle = "DC highest. Top 5: DC, NY, HI, OR, CA",
+  labs(title = "NY, HI, OR, and CA present highest levels\nof Homeless/capita in U.S. States on 2018",
+       subtitle = "Most states with around 50-150 homeles per 100,000 persons",
        caption = "Source: U.S. Department of Housing and Urban Development (HUD)", 
        x = "States")+
   homeless_theme
@@ -296,7 +344,6 @@ gdp_state <- gdp_state %>% subset(State!="United States")%>%
   subset(State!="Far West")
 
 gdp_state$State <- state.abb[match(gdp_state$State, state.name)] #Change to state codes
-population[8,1] = "DC"
 
 homeless_population_and_gdp <- merge(homeless_and_population, gdp_state, by = "State") 
 
@@ -327,7 +374,7 @@ The Department of Housing and Urban development of the US assigns funding to the
 
 In the following graph we will study amount of homeless in states and their allocation of resources for CoC program. As we would have expected, states with big amount of homeless receive more allocations.
 
-```{r, message=FALSE}
+```{r, message=FALSE, warning =FALSE}
 
 #Load data of grants to CoC programs
 grants <- read_excel("Data/Grantee_Awards_01272019_10472470.xlsx", sheet=1, range = "A4:G7248") 
@@ -341,15 +388,15 @@ homeless_and_grants <- merge(grants_by_state, pit_by_state)
 
 CA_NY_labels <- c("CA","NY")
 
-homeless_and_grants_plot<-
+homeless_and_grants_plot_CA_NY<-
   ggplot(homeless_and_grants,
          aes(x=Overall.Homeless..2018, y=`Award Amount`/1000000))+
   geom_point(color=cols[2])+
   geom_smooth(color=cols[1])+
-  geom_text(data = homeless_and_grants[homeless_and_grants$State %in% CA_NY_labels,], aes(label=State), vjust = -0.5)+
+  geom_text_repel(data = homeless_and_grants[homeless_and_grants$State %in% CA_NY_labels,], aes(label=State), vjust = -0.5)+
   scale_x_continuous(name="",labels=comma)+
   scale_y_continuous(name="",labels=comma)+
-  theme(axis.title.x=element_blank())+
+  theme(axis.title.x=element_blank(), panel.border = element_rect(colour = "black", fill=NA, size=1))+
     homeless_theme
 
 homeless_and_grants_plot_without_outliers <-
@@ -357,17 +404,17 @@ homeless_and_grants_plot_without_outliers <-
        aes(x=Overall.Homeless..2018, y=`Award Amount`/1000000))+
   geom_point(color=cols[2])+
   geom_smooth(color=cols[1])+
-  geom_text_repel(aes(label=State), vjust = -0.5)+
+  geom_text_repel(aes(label=State, vjust = -0.5))+
   scale_x_continuous(name="Total homeless",labels=comma)+
   scale_y_continuous(name="Funding for Homeless Programs\n(Millions USD)",labels=comma,limit = c(0,140))+
   labs(title = "Good allocation of homeless resources in states\naccording to homeless population",subtitle = "Especially consistent with CA and NY states with highest funding and highest homeless populations", caption = "Source: U.S. HUD, U.S. Bureau of Economic Analysis")+
     homeless_theme+
   annotation_custom(grob=
-                      ggplotGrob(homeless_and_grants_plot),
+                      ggplotGrob(homeless_and_grants_plot_CA_NY),
                     xmin = 21000,
                     xmax = 31000,
                     ymin = 0,
-                    ymax = 60)
+                    ymax = 50)
 
 plot(homeless_and_grants_plot_without_outliers)
 
