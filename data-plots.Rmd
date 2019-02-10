@@ -524,7 +524,7 @@ ggplot(data=world) +
   geom_point(data = homebase_locations_ny, aes(x = Longitude, y = Latitude), size = 3, shape = 23, fill = "darkred")+
   geom_point(data = drop_in_centers_ny, aes(x = Longitude, y = Latitude), size = 3, colour = "blue")+
   coord_sf(xlim = c(-74.3, -73.6), ylim = c(40.5, 40.95), expand = FALSE)+
-  labs(title = "Manhattan presents low homeless  centers\nconsidering homeless population compared to other areas",       subtitle = "Drop in centers (blue) and Homeless Prevention Network offices (red)\nnot disrtibuted in city according to unsheltered", caption = "Source: City of New York Open Data Portal")+
+  labs(title = "Manhattan presents low # homeless  centers\nconsidering homeless population compared to\nother areas in New York",       subtitle = "Drop in centers (blue) and Homeless Prevention Network offices (red)\nnot disrtibuted in city according to unsheltered", caption = "Source: City of New York Open Data Portal")+
   homeless_map_theme+
   scale_fill_gradientn(
     colors = cols,
