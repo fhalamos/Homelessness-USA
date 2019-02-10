@@ -1,7 +1,7 @@
 ---
 title: "Homeless in USA"
 author: "Felipe Alamos"
-date: "February 3, 2019"
+date: "February 10, 2019"
 output:
   html_document:
     code_folding: "hide"
@@ -20,7 +20,7 @@ Homeless people are one of the most vulnerable and marginalized members of socie
 This portfolio aims to visualize, and hence be able to dimension, the homelessness situation in the USA, in the hope of providing useful information and insights to understand this social phenomenon. Visualizations will consider the number of people in homeless situation (and different homelessness classification) across the different states of the country. In addition, the goal is to provide visual information of other data which may be interesting and possibly associated to this problem, such as resources assigned to emergency housing programs, GDP per state, performance indicators of shelters, etc. The main source of information will be the U.S. Department of Housing and Urban Development (HUD).
 
 
-We will be mainly using tidyverse library for data manipulation and ggplot2  for visualizations.
+We will be mainly using tidyverse library for data manipulation, ggplot2  for visualizations, Simple Features for mapping.
 
 ```{r libraries, message=FALSE, warning=FALSE}
 
@@ -32,11 +32,14 @@ library(readxl)
 library(scales)
 library(extrafont)
 library(ggrepel)
+library(sf)
+library("rnaturalearth")
+
 
 #Declaration of color palletes and themes
 
 #Color pallete we will be using
-cols <- c("#A7226E","#EC2049","#F26B38","#F7DB4F","#2F9599") 
+cols <- c("#1a9641","#a6d96a","#ffffbf","#fdae61","#d7191c") 
 
 homeless_theme <- 
   theme(title = element_text(family="Calibri"),
@@ -271,7 +274,7 @@ plot(p5)
 
 We will now compare the amount of homeless between states. NY and HI present severe rates of homeless per capita. 
 
-```{r, message=FALSE}
+```{r, warning=F, message=FALSE}
 
 #Do not consider last row of totals
 pit_by_state<- pit_by_state %>% head(-1)
@@ -284,12 +287,11 @@ population<-tail(population, -5) #Do not consider first elements
 population$State <- state.abb[match(population$State, state.name)] #Change to state codes
 #population[9,1] = "DC"
 
-
 #Data frame with homeless population and state population, plus column with homeless every 100,000 citizens
 homeless_and_population <- merge(pit_by_state, population, by = "State") %>% mutate(homeless_per_100000 = Overall.Homeless..2018/`2018`*100000)
+
+
 #Plot states vs n_homeless_per_capita
-
-
 homeless_per_state_2018_plot<-
   ggplot(data=homeless_and_population, aes(x=reorder(State, -homeless_per_100000), y=homeless_per_100000, fill=homeless_per_100000))+
   geom_bar(stat = "identity")+
@@ -312,6 +314,33 @@ homeless_per_state_2018_plot<-
 
 #Visualize
 plot(homeless_per_state_2018_plot)
+
+```
+
+It would now be interesting to have a geographical perspective of the differences between the states
+
+```{r, results='hide', fig.keep='all', warning = F, message = F}
+#Load stats shapefile
+#Source: https://www.census.gov/geo/maps-data/data/cbf/cbf_state.html
+states_shp <- st_read("Data/cb_2017_us_state_500k/cb_2017_us_state_500k.shp")
+
+homeless_and_geog_states <-
+  inner_join(states_shp, homeless_and_population, by = c("STUSPS"="State"))
+
+ggplot(data = homeless_and_geog_states) + 
+  geom_sf(aes(fill=homeless_per_100000))+
+  coord_sf(xlim = c(-124.7844079, -66.9513812), ylim = c(49.3457868, 24.7433195), expand = FALSE)+
+  scale_fill_gradientn(colors = cols, aesthetics = "fill")+
+  homeless_theme+
+  geom_text(#Could use geom_text_repel, but shows many ugly useless lines
+    aes(label = STUSPS, geometry = geometry),
+    size=3,
+    stat = "sf_coordinates",
+    #min.segment.length = 0
+  )+
+  labs(title = "High proportion of homeless per capita presented\nin west coast states + NY",       subtitle = "Rest of the country presents small deviations", caption = "Source: Source: U.S. HUD",x = "Latitue", y="Longitude")
+
+
 ```
 
 ##Homelessness and GDP
@@ -426,3 +455,65 @@ homeless_and_grants_plot_without_outliers <-
 plot(homeless_and_grants_plot_without_outliers)
 
 ```
+
+##Studying New York City Homeless Population
+
+As we have shown, New York State presents the highest index of homeless people per capita in the USA. Here we will present some brief more information about the homeless situation in the states capital city.
+
+We are interested in the distribution of unsheltered homeless through different areas en New York. In addition, we would like to know the location of the different drop-in Centers,  where homeless people are provided with hot meals, showers, medical help and a place to sleep, as well as locations of Homebase (Homeless Prevention Network) offices.
+
+
+```{r, results='hide', fig.keep='all', warning = F, message = F}
+
+#DataSources
+#https://data.cityofnewyork.us/Social-Services/Directory-Of-Homeless-Population-By-Year/5t4n-d72c/data
+#https://data.cityofnewyork.us/Social-Services/Directory-Of-Homebase-Locations/ntcm-2w4k/data
+#https://data.cityofnewyork.us/Social-Services/Directory-Of-Homeless-Drop-In-Centers/bmxf-3rd4/data
+#https://www1.nyc.gov/site/planning/data-maps/open-data/dwn-nynta.page
+
+NY_shp <- st_read("Data/NewYork/nynta_18d/nynta.shp")
+
+homeless_ny <-read.csv("Data/NewYork/Directory_Of_Homeless_Population_By_Year.csv")[25:29,2:3]
+drop_in_centers_ny <-read.csv("Data/NewYork/Directory_Of_Homeless_Drop-_In_Centers.csv")
+homebase_locations_ny <-read.csv("Data/NewYork/Directory_Of_Homebase_Locations.csv") 
+  
+homeless_ny <- homeless_ny %>%
+  separate(1,c(NA,"BoroName"), sep = "-")
+
+
+homeless_ny$BoroName <- sapply(homeless_ny$BoroName, function(x)gsub("n I","n.I",x))
+homeless_ny$BoroName <- sapply(homeless_ny$BoroName, function(x)gsub(" ","",x))
+homeless_ny$BoroName <- sapply(homeless_ny$BoroName, function(x)gsub("n.I","n I",x))
+
+NY_shp_with_homeless<-
+  merge(NY_shp, homeless_ny[,c("BoroName","Homeless.Estimates")],by="BoroName")
+
+NY_shp_with_homeless <- mutate(NY_shp_with_homeless, Homeless.Estimates = as.numeric(Homeless.Estimates))
+
+world <- ne_countries(scale = "medium", returnclass = "sf")
+
+ggplot(data=world) +
+  geom_sf()+
+  geom_sf(data = NY_shp_with_homeless, aes(fill=Homeless.Estimates))+
+  
+  annotate(geom = "label", x = -73.9, y = 40.9, label = "Bronx", 
+    fontface = "italic", color = "grey22", size = 3)+
+  annotate(geom = "label", x = -74, y = 40.65, label = "Brooklyn", 
+    fontface = "italic", color = "grey22", size = 3)+
+  annotate(geom = "label", x = -73.98, y = 40.8, label = "Manhatann", 
+    fontface = "italic", color = "grey22", size = 3)+
+  annotate(geom = "label", x = -73.8, y = 40.75, label = "Queens", 
+    fontface = "italic", color = "grey22", size = 3)+
+  annotate(geom = "label", x = -74.15, y = 40.6, label = "Staten Island", 
+    fontface = "italic", color = "grey22", size = 3)+
+  
+  geom_point(data = homebase_locations_ny, aes(x = Longitude, y = Latitude), size = 3, shape = 23, fill = "darkred")+
+  geom_point(data = drop_in_centers_ny, aes(x = Longitude, y = Latitude), size = 3, colour = "blue")+
+  coord_sf(xlim = c(-74.3, -73.6), ylim = c(40.5, 40.95), expand = FALSE)+
+  labs(title = "Manhattan presents low homeless  centers considering\nhomeless population compared to other areas in city",       subtitle = "Drop in centers (blue) and Homeless Prevention Network offices (red)\nnot disrtibuted in city according to unsheltered", caption = "Source: City of New York Open Data Portal",x = "Latitue", y="Longitude")+
+  homeless_theme+
+  scale_fill_gradientn(
+    colors = cols,
+    aesthetics = "fill")
+```
+
