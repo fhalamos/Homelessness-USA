@@ -52,6 +52,20 @@ homeless_theme <-
         panel.grid.minor = element_line(size = 0.1),
         panel.background = element_rect(fill='white')
         )
+
+homeless_map_theme <- 
+  homeless_theme %+replace%
+    theme(
+      axis.title      =   element_blank(),
+      axis.text       =   element_blank(),
+      axis.ticks       =   element_blank(),
+      panel.spacing    =   unit(0,"lines"),
+      plot.margin     =   unit(c(0,0,0,0),"lines"),
+      panel.background = element_rect(fill='lightblue'),
+      complete = TRUE
+    )
+
+
 ```
 
 ## Homelessness in time 
@@ -331,14 +345,14 @@ ggplot(data = homeless_and_geog_states) +
   geom_sf(aes(fill=homeless_per_100000))+
   coord_sf(xlim = c(-124.7844079, -66.9513812), ylim = c(49.3457868, 24.7433195), expand = FALSE)+
   scale_fill_gradientn(colors = cols, aesthetics = "fill")+
-  homeless_theme+
   geom_text(#Could use geom_text_repel, but shows many ugly useless lines
     aes(label = STUSPS, geometry = geometry),
     size=3,
     stat = "sf_coordinates",
     #min.segment.length = 0
   )+
-  labs(title = "High proportion of homeless per capita presented\nin west coast states + NY",       subtitle = "Rest of the country presents small deviations", caption = "Source: Source: U.S. HUD",x = "Latitue", y="Longitude")
+  labs(title = "High proportion of homeless per capita presented\nin west coast states + NY",       subtitle = "Rest of the country presents small deviations", caption = "Source: Source: U.S. HUD")+
+  homeless_map_theme
 
 
 ```
@@ -510,8 +524,8 @@ ggplot(data=world) +
   geom_point(data = homebase_locations_ny, aes(x = Longitude, y = Latitude), size = 3, shape = 23, fill = "darkred")+
   geom_point(data = drop_in_centers_ny, aes(x = Longitude, y = Latitude), size = 3, colour = "blue")+
   coord_sf(xlim = c(-74.3, -73.6), ylim = c(40.5, 40.95), expand = FALSE)+
-  labs(title = "Manhattan presents low homeless  centers considering\nhomeless population compared to other areas in city",       subtitle = "Drop in centers (blue) and Homeless Prevention Network offices (red)\nnot disrtibuted in city according to unsheltered", caption = "Source: City of New York Open Data Portal",x = "Latitue", y="Longitude")+
-  homeless_theme+
+  labs(title = "Manhattan presents low homeless  centers\nconsidering homeless population compared to other areas",       subtitle = "Drop in centers (blue) and Homeless Prevention Network offices (red)\nnot disrtibuted in city according to unsheltered", caption = "Source: City of New York Open Data Portal")+
+  homeless_map_theme+
   scale_fill_gradientn(
     colors = cols,
     aesthetics = "fill")
