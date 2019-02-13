@@ -467,7 +467,7 @@ As we have shown, New York State presents the highest index of homeless people p
 We are interested in the distribution of unsheltered homeless through different areas en New York. In addition, we would like to know the location of the different drop-in Centers,  where homeless people are provided with hot meals, showers, medical help and a place to sleep, as well as locations of Homebase (Homeless Prevention Network) offices.
 
 
-```{r, results='hide', fig.keep='all', warning = F, message = F}
+```{r fig.height = 6.5, fig.width = 6.5, results='hide', fig.keep='all', warning = F, message = F}
 
 #DataSources
 #https://data.cityofnewyork.us/Social-Services/Directory-Of-Homeless-Population-By-Year/5t4n-d72c/data
