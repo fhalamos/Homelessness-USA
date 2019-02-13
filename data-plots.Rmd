@@ -164,9 +164,10 @@ plot(homeless_time_plot)
 
 ```
 
-Now we would like to study evolution in time of different homeless populations. Instead of studying total numbers of populations, we will visualize rates of changes in time:
 
-```{r}
+```{r, include=FALSE}
+
+#Now we would like to study evolution in time of different homeless populations. Instead of studying total numbers of populations, we will visualize rates of changes in time:
 
 subpopulations <-
   all_years %>%
