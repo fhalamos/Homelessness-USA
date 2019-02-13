@@ -33,13 +33,13 @@ library(scales)
 library(extrafont)
 library(ggrepel)
 library(sf)
-library("rnaturalearth")
+library(rnaturalearth)
 
 
 #Declaration of color palletes and themes
 
 #Color pallete we will be using
-#Source: http://colorbrewer2.org. 5 data classes, diverging nature of data, 8t color scheme
+#Source: http://colorbrewer2.org. 5 data classes, diverging nature of data, 8t color scheme  
 cols <- c("#1a9641","#a6d96a","#ffffbf","#fdae61","#d7191c") 
 
 homeless_theme <- 
@@ -192,12 +192,14 @@ plot(homeless_subgroups_time_plot)
 ```
 
 ##Homeless Demographics
-We present several characteristics of the homeless population. Thanks to the data, we can understand the following:
-- Most homeless people are not chronically homeless.
-- A significant proportion are individuals alone rather than in families
-- There is a significant proportion of Black or African American homeless considering composition of US population
-- Although majority are men,there is also a significant amount of woman.
-- Most homeless are in an unsheltered condition
+Through this section we present several demographics of the homeless population.
+
+Thanks to the data, we can understand the following:
+* For most people, homelessness is a temporary rather than a chronical experience.
+* A significant proportion are individuals alone rather than in families.
+* Although men are a majority and are more visible, there is still a significant proportion of women.
+* Most people experiencing homelessness are in an sheltered condition.
+
 
 ```{r, message=FALSE}
 #Load data of number of homeless in states
@@ -220,7 +222,7 @@ alone <- alone_families[1][[1]] /(alone_families[1][[1]] + alone_families[2][[1]
 
 families<- alone_families[2][[1]] /(alone_families[1][[1]] + alone_families[2][[1]])
 
-#Get chornic
+#Get chornic/temporary
 chornic_temporary<- pit_by_state %>% tail(1) %>% select(Chronically.Homeless..2018, Overall.Homeless..2018
 )
 
@@ -235,55 +237,55 @@ colnames(classifications)<- c("Classification","Quantity","Type")
 
 classifications <- 
   classifications %>% 
-  add_row( Classification="Shelter condition", Quantity=sh, Type="Sheltered")%>% 
-  add_row( Classification="Shelter condition", Quantity=unsh, Type="Unsheltered")%>%
-  add_row( Classification="Family state", Quantity=alone, Type="Individuals alone")%>% 
-  add_row( Classification="Family state", Quantity=families, Type="Individuals in families")%>%
-  add_row( Classification="Chornic", Quantity=temporary, Type="Temporary")%>%
-  add_row( Classification="Chornic", Quantity=chornic, Type="Chornic")%>%
+  add_row( Classification="Sheltered/Unsheltered", Quantity=sh, Type="b.Sheltered")%>% 
+  add_row( Classification="Sheltered/Unsheltered", Quantity=unsh, Type="a.Unsheltered")%>%
+  add_row( Classification="Alone/In families", Quantity=alone, Type="b.Individuals alone")%>% 
+  add_row( Classification="Alone/In families", Quantity=families, Type="a.Individuals in families")%>%
+  add_row( Classification="Temporary/Chornic", Quantity=temporary, Type="Temporary")%>%
+  add_row( Classification="Temporary/Chornic", Quantity=chornic, Type="Chornic")%>%
+
+#Data for sex obtained from HUD report. Sex not reported in datasources.  https://www.hudexchange.info/resources/documents/2018-AHAR-Part-1.pdf
+  add_row( Classification="Male/Female", Quantity=0.602, Type="b.Male")%>%
+  add_row( Classification="Male/Female", Quantity=0.391, Type="a.Female")#%>%
+
+positions <- c("Male/Female","Sheltered/Unsheltered","Alone/In families", "Temporary/Chornic")
+
+
+#Idea from: https://solomonmg.github.io/blog/
+ggplot(data = classifications, aes(x = Classification, y = Quantity, fill = Type)) +
+  geom_bar(stat = "identity",width = 0.5)+
+ coord_flip()+
+ scale_fill_manual(values = c(cols[4],cols[4], cols[4],cols[2], cols[2],cols[2], cols[4],cols[2]))+
+  geom_text(aes(label=percent(Quantity)),size = 4, position = position_stack(vjust = 0.5))+
+  homeless_theme +
+  theme(legend.position="none")+
+  labs(title = "Majority of homeless are temporary,\nsheltered, alone and male",
+       subtitle = "Data ratifies homelessness is not a permanent experience for most people", caption = "Source: U.S. Department of Housing and Urban Development (HUD)",x = "Years")+
+  scale_x_discrete(limits = positions)
+
   
-  add_row( Classification="Sex", Quantity=0.602, Type="Male")%>%
-  add_row( Classification="Sex", Quantity=0.391, Type="Female")%>%
-  add_row( Classification="Sex", Quantity=0.007, Type="Other")%>%
-  add_row( Classification="Race", Quantity=0.398, Type="Black or African American")%>%
-  add_row( Classification="Race", Quantity=0.489, Type="White")%>%
-  add_row( Classification="Race", Quantity=0.028, Type="Native American")%>%
-  add_row( Classification="Race", Quantity=0.012, Type="Asian")%>%
-  add_row( Classification="Race", Quantity=0.061, Type="Other races")
-
-xs <- split(classifications, f=classifications$Classification)
-
-p <- ggplot(xs$Chornic) +
-  geom_bar(aes(x=1,y=Quantity,fill = Type), stat="identity")+
-  scale_x_discrete(name="")+
-  scale_y_continuous(name="Proportion")+
-  labs(caption = "Source: U.S. Department of Housing and Urban Development (HUD)")+
-  coord_polar("y", start=0)+
-  scale_fill_manual(values = cols)+
-  homeless_theme#+
-#  geom_text(aes(
- #   x=1,
-  #  y=ifelse(cumsum(Quantity)=Quantity,0,1),
-   # label=sprintf("%1.2f%%", 100*Quantity)))
-
-p1 <- p + labs(title = "Homeless are mostly temporary than chornic", subtitle = "Consistent with theory that homeless is usually not a permanent state")
 
 
-p2 <- p %+% xs$`Family state`+labs(title = "Most homeless are alone rather\nthan with families", subtitle = "Observations, particularly in streets, is consisten with data")
 
-
-p3 <- p %+% xs$Race+labs(title = "Black/African american dominant\nrace proportionally to US Population", subtitle = "White race is dominant in absolute values")
-
-p4 <- p %+% xs$Sex+labs(title = "Altough men are more visible,\nWoman is still significant proportion of homeless population", subtitle = "40% are woman")
-
-p5 <- p %+% xs$`Shelter condition`+ labs(title = "Most homeless in shelter condition", subtitle = "These may vary depending on season of year")
-
-plot(p1)
-plot(p2)
-plot(p3)
-plot(p4)
-plot(p5)
 ```
+
+
+```{r}
+#RACE PLOT
+# There is a significant proportion of Black or African American homeless considering composition of US population
+
+#"Black/African american dominant\nrace proportionally to US Population", subtitle = "White race is dominant in absolute values")
+
+#  add_row( Classification="Sex", Quantity=0.007, Type="Other")#%>%. What is a proper way of not showing that data but making it explicit?
+
+#  add_row( Classification="Race", Quantity=0.398, Type="Black or African American")%>%
+#  add_row( Classification="Race", Quantity=0.489, Type="White")%>%
+#  add_row( Classification="Race", Quantity=0.028, Type="Native American")%>%
+#  add_row( Classification="Race", Quantity=0.012, Type="Asian")%>%
+#  add_row( Classification="Race", Quantity=0.061, Type="Other races")
+
+```
+
 
 ##Homelessness in different states during 2018
 
