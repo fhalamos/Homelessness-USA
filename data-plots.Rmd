@@ -1,7 +1,7 @@
 ---
 title: "Homeless in USA"
 author: "Felipe Alamos"
-date: "February 10, 2019"
+date: "February 14, 2019"
 output:
   html_document:
     code_folding: "hide"
@@ -34,18 +34,21 @@ library(extrafont)
 library(ggrepel)
 library(sf)
 library(rnaturalearth)
+library(GGally)
+library(waffle)
+library(gridExtra)
 
 
 #Declaration of color palletes and themes
 
 #Color pallete we will be using
 #Source: http://colorbrewer2.org. 5 data classes, diverging nature of data, 8t color scheme  
-cols <- c("#1a9641","#a6d96a","#ffffbf","#fdae61","#d7191c") 
+cols <- c("#1a9641","#a6d96a","#ffff4f","#fdae61","#d7191c") 
 
 homeless_theme <- 
   theme(title = element_text(family="Calibri"),
         plot.title = element_text(size = rel(2)),
-        plot.subtitle =element_text(size = rel(1)),
+        plot.subtitle =element_text(size = rel(1.5)),
         plot.caption = element_text(family="Georgia"),
         axis.title = element_text(family="Times New Roman"),
         panel.grid = element_line(linetype = 'dashed', colour = "black"),
@@ -234,6 +237,7 @@ classifications <-
 #Data for sex obtained from HUD report. Sex not reported in datasources.  https://www.hudexchange.info/resources/documents/2018-AHAR-Part-1.pdf
   add_row( Classification="Male/Female", Quantity=0.602, Type="b.Male")%>%
   add_row( Classification="Male/Female", Quantity=0.391, Type="a.Female")#%>%
+#  add_row( Classification="Sex", Quantity=0.007, Type="Other")#%>%. What is a proper way of not showing that data but making it explicit?
 
 positions <- c("Male/Female","Sheltered/Unsheltered","Alone/In families", "Temporary/Chornic")
 
@@ -242,34 +246,68 @@ positions <- c("Male/Female","Sheltered/Unsheltered","Alone/In families", "Tempo
 ggplot(data = classifications, aes(x = Classification, y = Quantity, fill = Type)) +
   geom_bar(stat = "identity",width = 0.5)+
  coord_flip()+
- scale_fill_manual(values = c(cols[4],cols[4], cols[4],cols[2], cols[2],cols[2], cols[4],cols[2]))+
+ scale_fill_manual(values = c(cols[5],cols[5], cols[5],cols[1], cols[1],cols[1], cols[5],cols[1]))+
   geom_text(aes(label=percent(Quantity)),size = 4, position = position_stack(vjust = 0.5))+
+  scale_x_discrete(limits = positions)+
   homeless_theme +
   theme(legend.position="none")+
   labs(title = "Majority of homeless are temporary,\nsheltered, alone and male",
-       subtitle = "Data ratifies homelessness is not a permanent experience for most people", caption = "Source: U.S. Department of Housing and Urban Development (HUD)",x = "Years")+
-  scale_x_discrete(limits = positions)
-
-  
-
+       subtitle = "Data ratifies homelessness is not a permanent experience\nfor most people", caption = "Source: U.S. Department of Housing and Urban Development (HUD)",x = "", y="Percentage")
 
 
 ```
 
 
-```{r}
-#RACE PLOT
-# There is a significant proportion of Black or African American homeless considering composition of US population
+Race is a significant element of homeless demographics. Notably, we can observe that the different races present in the US population are not present in the homeless populations in the same proportions.
 
-#"Black/African american dominant\nrace proportionally to US Population", subtitle = "White race is dominant in absolute values")
 
-#  add_row( Classification="Sex", Quantity=0.007, Type="Other")#%>%. What is a proper way of not showing that data but making it explicit?
+```{r, message=FALSE, fig.height = 5, fig.width = 10}
 
-#  add_row( Classification="Race", Quantity=0.398, Type="Black or African American")%>%
-#  add_row( Classification="Race", Quantity=0.489, Type="White")%>%
-#  add_row( Classification="Race", Quantity=0.028, Type="Native American")%>%
-#  add_row( Classification="Race", Quantity=0.012, Type="Asian")%>%
-#  add_row( Classification="Race", Quantity=0.061, Type="Other races")
+races <- c('White','Black or African American','Native American',"Asian","Other races")
+
+#Source: HUD Report, https://www.hudexchange.info/resource/5783/2018-ahar-part-1-pit-estimates-of-homelessness-in-the-us/
+homeless_proportion <- c(`White`=48.9,`Black`=39.8,`Native American`=2.8,`Asian`=1.2,`Other races`=7.3)
+
+#Source: https://www.census.gov/quickfacts/fact/table/US/IPE120217
+country_proportion <- c(`White`=76.6,`Black`=13.4,`Native American`=1.3,`Asian`=5.8,`Other races`=2.9)
+
+races_proportions <- data.frame(races,country_proportion,homeless_proportion)
+names(races_proportions)[2]<- "Country composition"
+names(races_proportions)[3]<- "Homeless composition"
+
+#Square pie chart to show homeless race proportion
+#Reference: https://harrycaufield.net/severalog/2016/7/29/8jt1lrt7hd2vqh4heu7mcuqrdcg0od
+
+
+waffle <- 
+  waffle(homeless_proportion*10, rows=20, size=0.6, colors=cols,  xlab="1 square is 0.1% of homeless population")+
+  homeless_theme+
+  labs(caption="Source: U.S. Department of Housing and Urban Development (HUD)")+
+  annotate("label", x = 4, y = 1.3, label = "48.9%",fontface = "bold",size=4)+
+  annotate("label", x = 29, y = 1.3, label = "39.8%",fontface = "bold",size=4)
+
+
+parall_coord <- 
+  ggparcoord(data = races_proportions,
+           columns = c(2,3),
+           groupColumn = 1,
+           scale="globalminmax",
+           mapping = ggplot2::aes(size = 3),
+           showPoints = TRUE,
+           alphaLines = 0.9,
+           splineFactor = TRUE) +
+    scale_size_identity()+
+    homeless_theme+
+    scale_y_continuous(breaks=c(0,10,20,30,40,50,60,70,80))+
+    scale_color_manual(values = c("White"=cols[1], "Black or African American"=cols[2],"Native American"=cols[3],"Asian"=cols[4],"Other races"=cols[5]),breaks=c("White", "Black or African American","Native American","Asian","Other races"))+
+    labs(title="Black/African american race is overrepresented in homeless population\nconsidering its proportion in the country", subtitle="While only ~13% of Americans are Black/African american, they represent ~40%\nof homeless population. Opposite happens with white americans.",x='',y="Percentage (%)")+
+    theme(panel.grid.minor = element_blank(),legend.position="none")
+
+
+gB <- ggplotGrob(waffle)
+gA <- ggplotGrob(parall_coord)
+grid::grid.newpage()
+grid::grid.draw(gtable_cbind(gA, gB))
 
 ```
 
@@ -341,7 +379,7 @@ ggplot(data = homeless_and_geog_states) +
     stat = "sf_coordinates",
     #min.segment.length = 0
   )+
-  labs(title = "High proportion of homeless per capita presented\nin west coast states + NY",       subtitle = "Rest of the country presents small deviations", caption = "Source: Source: U.S. HUD")+
+  labs(title = "High proportion of homeless per capita presented\nin west coast states + NY",       subtitle = "Rest of the country presents small deviations", caption = "Source: U.S. Department of Housing and Urban Development (HUD)")+
   homeless_map_theme
 
 
@@ -467,7 +505,7 @@ As we have shown, New York State presents the highest index of homeless people p
 We are interested in the distribution of unsheltered homeless through different areas en New York. In addition, we would like to know the location of the different drop-in Centers,  where homeless people are provided with hot meals, showers, medical help and a place to sleep, as well as locations of Homebase (Homeless Prevention Network) offices.
 
 
-```{r fig.height = 6.5, fig.width = 6.5, results='hide', fig.keep='all', warning = F, message = F}
+```{r, fig.height = 7, fig.width = 7, results='hide', fig.keep='all', warning = F, message = F}
 
 #DataSources
 #https://data.cityofnewyork.us/Social-Services/Directory-Of-Homeless-Population-By-Year/5t4n-d72c/data
@@ -520,4 +558,3 @@ ggplot(data=world) +
     colors = cols,
     aesthetics = "fill")
 ```
-
