@@ -1,7 +1,7 @@
 ---
 title: "Homeless in USA"
 author: "Felipe Alamos"
-date: "February 14, 2019"
+date: "February 17, 2019"
 output:
   html_document:
     code_folding: "hide"
@@ -39,6 +39,9 @@ library(waffle)
 library(gridExtra)
 
 
+loadfonts()
+
+
 #Declaration of color palletes and themes
 
 #Color pallete we will be using
@@ -46,16 +49,16 @@ library(gridExtra)
 cols <- c("#1a9641","#a6d96a","#ffff4f","#fdae61","#d7191c") 
 
 homeless_theme <- 
-  theme(title = element_text(family="Calibri"),
+  theme(title = element_text(family="Constantia"),
         plot.title = element_text(size = 16),
-        plot.subtitle =element_text(size = 13),
-        plot.caption = element_text(family="Georgia"),
-        axis.title = element_text(family="Times New Roman"),
+        plot.subtitle =element_text(size = 12),
+        plot.caption = element_text(family="Lucida Fax", face="italic", size=10),
+        axis.title = element_text(family="Garamond", size=14),
         panel.grid = element_line(linetype = 'dashed', colour = "black"),
         panel.grid.major = element_line(size = 0.5),
         panel.grid.minor = element_line(size = 0.1),
-        panel.background = element_rect(fill='white'),
-        axis.text  = element_text(size=10)
+        panel.background = element_rect(fill='white')#,
+        #axis.text  = element_text(size=10)
         )
 
 homeless_map_theme <- 
@@ -79,7 +82,7 @@ A first necessary approach is to quantify the amount of people experiencing home
 
 Generally speaking, the total homeless population has had a constant decrease for the last decade. We can observe that from 2012 to 2013 there was a steeper decline. From 2016 to 2018 there has been a slight increase. In addition, the unsheltered population has proportionally decreased more than the sheltered population.
 
-```{r, message=FALSE, fig.height = 4, fig.width = 11}
+```{r, message=FALSE, fig.align='center', fig.height = 5, fig.width = 10}
 
 #Load data
 h_2018 <-read_excel("Data/2007-2018-PIT-Counts-by-State.xlsx", sheet=2)
@@ -186,13 +189,14 @@ plot(homeless_time_plot)
 Through this section we present several demographics of the homeless population.
 
 Thanks to the data, we can understand the following:
-* For most people, homelessness is a temporary rather than a chronic experience.
+
+*For most people, homelessness is a temporary rather than a chronic experience.
 * A significant proportion are individuals alone rather than in families.
 * Although men are a majority and are more visible, there is still a significant proportion of women.
 * Most people experiencing homelessness are in an sheltered condition.
 
 
-```{r, message=FALSE, fig.height = 5, fig.width = 7}
+```{r, message=FALSE, fig.align='center', fig.height = 5, fig.width = 10}
 #Load data of number of homeless in states
 pit_by_state <- read_excel("Data/2007-2018-PIT-Counts-by-State.xlsx", sheet=2)
 
@@ -262,7 +266,8 @@ ggplot(data = classifications, aes(x = Classification, y = Quantity, fill = Type
 Race is a significant element of homeless demographics. Notably, we can observe that the different races present in the US population are not present in the homeless populations in the same proportions.
 
 
-```{r, message=FALSE, fig.height = 4, fig.width = 11}
+```{r, message=FALSE, fig.align='center', fig.height = 5, fig.width = 10}
+
 
 races <- c('White','Black or African American','Native American',"Asian","Other races")
 
@@ -317,7 +322,7 @@ grid::grid.draw(gtable_cbind(gA, gB))
 
 We will now compare the amount of homeless between states. NY and HI present severe rates of homeless per capita. 
 
-```{r, warning=F, message=FALSE, fig.height = 4, fig.width = 11}
+```{r, message=FALSE, fig.align='center', fig.height = 5, fig.width = 10}
 
 #Do not consider last row of totals
 pit_by_state<- pit_by_state %>% head(-1)
@@ -346,7 +351,7 @@ ggplot(data=homeless_and_population, aes(x=reorder(State, -homeless_per_100000),
     )+
   scale_fill_gradientn(
     colors = cols,
-    aesthetics = "fill")+
+    aesthetics = "fill", name = "Homeless every 100,000 people")+
     homeless_theme+
     theme(
     axis.text.x = element_text(size=9, angle = 90, vjust=-0.001),
@@ -363,7 +368,7 @@ ggplot(data=homeless_and_population, aes(x=reorder(State, -homeless_per_100000),
 
 It would now be interesting to have a geographical perspective of the differences between the states
 
-```{r, fig.height = 5, fig.width = 11, results='hide', fig.keep='all', warning = F, message = F}
+```{r, fig.align='center', fig.height = 5, fig.width = 10, results='hide', fig.keep='all', warning = F, message = F}
 #Load stats shapefile
 #Source: https://www.census.gov/geo/maps-data/data/cbf/cbf_state.html
 states_shp <- st_read("Data/cb_2017_us_state_500k/cb_2017_us_state_500k.shp")
@@ -374,7 +379,7 @@ homeless_and_geog_states <-
 ggplot(data = homeless_and_geog_states) + 
   geom_sf(aes(fill=homeless_per_100000))+
   coord_sf(xlim = c(-124.7844079, -66.9513812), ylim = c(49.3457868, 24.7433195), expand = FALSE)+
-  scale_fill_gradientn(colors = cols, aesthetics = "fill")+
+  scale_fill_gradientn(colors = cols, aesthetics = "fill", name = "Homeless every 100,000 people")+
   geom_text(#Could use geom_text_repel, but shows many ugly useless lines
     aes(label = STUSPS, geometry = geometry),
     size=3,
@@ -391,7 +396,7 @@ ggplot(data = homeless_and_geog_states) +
 During the following study we will try to understand if rich states experience more or less homelessness. Generally speaking, we can see that there is no trend.
 
 
-```{r, message=FALSE, warning=FALSE, fig.height = 4, fig.width = 7}
+```{r, message=FALSE, fig.align='center', fig.height = 5, fig.width = 10}
 
 #Load data of GDP per states
 gdp_state <- read_excel("Data/qgdpstate1118.xlsx", sheet=4, range = "A5:H64")
@@ -448,7 +453,7 @@ The Department of Housing and Urban development of the US assigns funding to the
 
 In the following graph we will study amount of homeless in states and their allocation of resources for CoC program. As we would have expected, states with big amount of homeless receive more allocations.
 
-```{r, message=FALSE, warning =FALSE, fig.height = 4, fig.width = 7}
+```{r, message=FALSE, fig.align='center', fig.height = 5, fig.width = 10}
 
 #Load data of grants to CoC programs
 grants <- read_excel("Data/Grantee_Awards_01272019_10472470.xlsx", sheet=1, range = "A4:G7248") 
@@ -471,7 +476,7 @@ states_over_5000 <- pit_by_state %>%
 
 homeless_and_grants_plot_CA_NY<-
   ggplot(homeless_and_grants,
-         aes(x=Overall.Homeless..2018, y=`Award Amount`/1000000))+
+         aes(x=Overall.Homeless..2018/1000, y=`Award Amount`/1000000))+
   geom_point(color=cols[2])+
   geom_smooth(color=cols[1])+
   geom_text_repel(data = homeless_and_grants[homeless_and_grants$State %in% CA_NY_labels,], aes(label=State), vjust = -0.5)+
@@ -482,17 +487,17 @@ homeless_and_grants_plot_CA_NY<-
 
 homeless_and_grants_plot_without_outliers <-
        ggplot(data = homeless_and_grants[!homeless_and_grants$State %in% CA_NY_labels,],
-       aes(x=Overall.Homeless..2018, y=`Award Amount`/1000000))+
+       aes(x=Overall.Homeless..2018/1000, y=`Award Amount`/1000000))+
   geom_point(color=cols[2])+
   geom_smooth(color=cols[1])+
   geom_text_repel(data = homeless_and_grants[homeless_and_grants$State %in% states_over_5000$State,],aes(label=State, vjust = -0.5))+
-  scale_x_continuous(name="Total homeless",labels=comma)+
+  scale_x_continuous(name="Total homeless (thousands)",labels=comma)+
   scale_y_continuous(name="Funding for Homeless Programs\n(Millions USD)",labels=comma,limit = c(0,140))+
   labs(title = "Good allocation of homeless resources in states\naccording to homeless population",subtitle = "Especially consistent with CA and NY states with highest funding and highest homeless populations", caption = "Source: U.S. HUD, U.S. Bureau of Economic Analysis")+
     homeless_theme+
-  annotation_custom(grob=                     ggplotGrob(homeless_and_grants_plot_CA_NY),
-                    xmin = 20000,
-                    xmax = 30000,
+  annotation_custom(grob= ggplotGrob(homeless_and_grants_plot_CA_NY),
+                    xmin = 20,
+                    xmax = 30,
                     ymin = 0,
                     ymax = 50)
 
@@ -507,7 +512,8 @@ As we have shown, New York State presents the highest index of homeless people p
 We are interested in the distribution of unsheltered homeless through different areas en New York. In addition, we would like to know the location of the different drop-in Centers,  where homeless people are provided with hot meals, showers, medical help and a place to sleep, as well as locations of Homebase (Homeless Prevention Network) offices.
 
 
-```{r, fig.height = 7, fig.width = 7, results='hide', fig.keep='all', warning = F, message = F}
+```{r, fig.align='center', fig.height = 7, fig.width = 10, results='hide', fig.keep='all', warning = F, message = F}
+
 
 #DataSources
 #https://data.cityofnewyork.us/Social-Services/Directory-Of-Homeless-Population-By-Year/5t4n-d72c/data
@@ -545,7 +551,6 @@ world <- ne_countries(scale = "medium", returnclass = "sf")
 ggplot(data=world) +
   geom_sf()+
   geom_sf(data = NY_shp_with_homeless, aes(fill=Homeless.Estimates))+#include factor if want discrete legend
-  
   annotate(geom = "label", x = -73.9, y = 40.9, label = "Bronx", 
     fontface = "italic", color = "grey22", size = 3)+
   annotate(geom = "label", x = -74, y = 40.65, label = "Brooklyn", 
@@ -556,7 +561,6 @@ ggplot(data=world) +
     fontface = "italic", color = "grey22", size = 3)+
   annotate(geom = "label", x = -74.15, y = 40.6, label = "Staten Island", 
     fontface = "italic", color = "grey22", size = 3)+
-  
   geom_point(data = homebase_locations_ny, aes(x = Longitude, y = Latitude, shape = Type), size = 3, colour = "blue")+
   geom_point(data = drop_in_centers_ny, aes(x = Longitude, y = Latitude, shape=Type), size = 3, colour = "blue")+
   coord_sf(xlim = c(-74.3, -73.6), ylim = c(40.5, 40.95), expand = FALSE)+
