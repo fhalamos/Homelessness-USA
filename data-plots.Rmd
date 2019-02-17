@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ##Introduction
 
-Homeless people are one of the most vulnerable and marginalized members of society in the United States of America. According to the McKinney -Vento Homeless Assistance Act of 1987, a person is experiencing a homelessness cogndition whenever she or he is lacking a regular and adequate nighttime residence. It is a particularly harmful state, especially considering that it is usually associated with a variety of other problems in health, education or employment. In the USA, during 2018 there were 552,830 people living in homeless condition.
+Homeless people are one of the most vulnerable and marginalized members of society in the United States of America. According to the McKinney -Vento Homeless Assistance Act of 1987, a person is experiencing a homelessness condition whenever she or he is lacking a regular and adequate nighttime residence. It is a particularly harmful state, especially considering that it is usually associated with a variety of other problems in health, education or employment. In the USA, during 2018 there were 552,830 people living in homeless condition.
 
 This portfolio aims to visualize, and hence be able to dimension, the homelessness situation in the USA, in the hope of providing useful information and insights to understand this social phenomenon. Visualizations will consider the number of people in homeless situation (and different homelessness classification) across the different states of the country. In addition, the goal is to provide visual information of other data which may be interesting and possibly associated to this problem, such as resources assigned to emergency housing programs, GDP per state, performance indicators of shelters, etc. The main source of information will be the U.S. Department of Housing and Urban Development (HUD).
 
@@ -47,14 +47,15 @@ cols <- c("#1a9641","#a6d96a","#ffff4f","#fdae61","#d7191c")
 
 homeless_theme <- 
   theme(title = element_text(family="Calibri"),
-        plot.title = element_text(size = rel(2)),
-        plot.subtitle =element_text(size = rel(1.5)),
+        plot.title = element_text(size = 16),
+        plot.subtitle =element_text(size = 13),
         plot.caption = element_text(family="Georgia"),
         axis.title = element_text(family="Times New Roman"),
         panel.grid = element_line(linetype = 'dashed', colour = "black"),
         panel.grid.major = element_line(size = 0.5),
         panel.grid.minor = element_line(size = 0.1),
-        panel.background = element_rect(fill='white')
+        panel.background = element_rect(fill='white'),
+        axis.text  = element_text(size=10)
         )
 
 homeless_map_theme <- 
@@ -74,11 +75,11 @@ homeless_map_theme <-
 
 ## Homelessness in time 
 
-A first necessary aproach is to quantify the amount of people experiencing homelessness through time. We would like to know if the total amount of homeless has increased, decreased or kept constant during last decade. Same question would be inteteresting for evolution of subpopulations of homeless such as: sheltered and unsheltered, those living in families or alone, etc.
+A first necessary approach is to quantify the amount of people experiencing homelessness through time. We would like to know if the total amount of homeless has increased, decreased or kept constant during last decade. Same question would be interesting for evolution of sub populations of homeless such as: sheltered and unsheltered, those living in families or alone, etc.
 
 Generally speaking, the total homeless population has had a constant decrease for the last decade. We can observe that from 2012 to 2013 there was a steeper decline. From 2016 to 2018 there has been a slight increase. In addition, the unsheltered population has proportionally decreased more than the sheltered population.
 
-```{r, message=FALSE}
+```{r, message=FALSE, fig.height = 4, fig.width = 11}
 
 #Load data
 h_2018 <-read_excel("Data/2007-2018-PIT-Counts-by-State.xlsx", sheet=2)
@@ -154,8 +155,8 @@ total_sh_and_unsh <-
   select(2,3,4,8)
 
 colnames(total_sh_and_unsh)[1] <- "Homeless total"
-colnames(total_sh_and_unsh)[2] <- "Unsheltered homeless"
-colnames(total_sh_and_unsh)[3] <- "Sheltered homeless"
+colnames(total_sh_and_unsh)[2] <- "Sheltered homeless"
+colnames(total_sh_and_unsh)[3] <- "Unsheltered homeless"
 
 total_sh_and_unsh <- gather(total_sh_and_unsh, key = "Type", value = "Quantity" ,  1:3)
 
@@ -169,7 +170,7 @@ homeless_time_plot<-
   scale_y_continuous(name="Number of homeless",labels=comma)+
   scale_x_continuous(breaks = c(2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018))+
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
-  labs(title = "Decline of total homeless in USA during\nlast decade",
+  labs(title = "Decline of total homeless in USA during last decade",
        subtitle = "Unsheltered homeless population has shown steeper decline than sheltered", caption = "Source: U.S. Department of Housing and Urban Development (HUD)",x = "Years")+
   homeless_theme+
   scale_color_manual(values = c("#d7191c","#a6d96a","#1a9641"))
@@ -185,13 +186,13 @@ plot(homeless_time_plot)
 Through this section we present several demographics of the homeless population.
 
 Thanks to the data, we can understand the following:
-* For most people, homelessness is a temporary rather than a chronical experience.
+* For most people, homelessness is a temporary rather than a chronic experience.
 * A significant proportion are individuals alone rather than in families.
 * Although men are a majority and are more visible, there is still a significant proportion of women.
 * Most people experiencing homelessness are in an sheltered condition.
 
 
-```{r, message=FALSE}
+```{r, message=FALSE, fig.height = 5, fig.width = 7}
 #Load data of number of homeless in states
 pit_by_state <- read_excel("Data/2007-2018-PIT-Counts-by-State.xlsx", sheet=2)
 
@@ -261,7 +262,7 @@ ggplot(data = classifications, aes(x = Classification, y = Quantity, fill = Type
 Race is a significant element of homeless demographics. Notably, we can observe that the different races present in the US population are not present in the homeless populations in the same proportions.
 
 
-```{r, message=FALSE, fig.height = 5, fig.width = 10}
+```{r, message=FALSE, fig.height = 4, fig.width = 11}
 
 races <- c('White','Black or African American','Native American',"Asian","Other races")
 
@@ -316,7 +317,7 @@ grid::grid.draw(gtable_cbind(gA, gB))
 
 We will now compare the amount of homeless between states. NY and HI present severe rates of homeless per capita. 
 
-```{r, warning=F, message=FALSE}
+```{r, warning=F, message=FALSE, fig.height = 4, fig.width = 11}
 
 #Do not consider last row of totals
 pit_by_state<- pit_by_state %>% head(-1)
@@ -334,34 +335,35 @@ homeless_and_population <- merge(pit_by_state, population, by = "State") %>% mut
 
 
 #Plot states vs n_homeless_per_capita
-homeless_per_state_2018_plot<-
-  ggplot(data=homeless_and_population, aes(x=reorder(State, -homeless_per_100000), y=homeless_per_100000, fill=homeless_per_100000))+
+#homeless_per_state_2018_plot<-
+ggplot(data=homeless_and_population, aes(x=reorder(State, -homeless_per_100000), y=homeless_per_100000, fill=homeless_per_100000))+
   geom_bar(stat = "identity")+
   scale_y_continuous(
     name="Number of homeless every 100,000",
     limits=c(0,500),
-    breaks = c(0,50,100,200,300,400,500)
+    breaks = c(0,50,100,200,300,400,500),
+    expand=c(0,0)
     )+
   scale_fill_gradientn(
     colors = cols,
     aesthetics = "fill")+
-  theme(
-    axis.text.x = element_text(size=7, angle = 90, vjust=-0.001),
+    homeless_theme+
+    theme(
+    axis.text.x = element_text(size=9, angle = 90, vjust=-0.001),
     panel.grid.major.x = element_blank())+ #Rotate x axis text
   labs(title = "NY, HI, OR, and CA present highest levels\nof Homeless/capita in U.S. States on 2018",
        subtitle = "Most states with around 50-150 homeles per 100,000 persons",
        caption = "Source: U.S. Department of Housing and Urban Development (HUD)", 
-       x = "States")+
-  homeless_theme
+       x = "States")
 
 #Visualize
-plot(homeless_per_state_2018_plot)
+#plot(homeless_per_state_2018_plot)
 
 ```
 
 It would now be interesting to have a geographical perspective of the differences between the states
 
-```{r, results='hide', fig.keep='all', warning = F, message = F}
+```{r, fig.height = 5, fig.width = 11, results='hide', fig.keep='all', warning = F, message = F}
 #Load stats shapefile
 #Source: https://www.census.gov/geo/maps-data/data/cbf/cbf_state.html
 states_shp <- st_read("Data/cb_2017_us_state_500k/cb_2017_us_state_500k.shp")
@@ -379,7 +381,7 @@ ggplot(data = homeless_and_geog_states) +
     stat = "sf_coordinates",
     #min.segment.length = 0
   )+
-  labs(title = "High proportion of homeless per capita presented\nin west coast states + NY",       subtitle = "Rest of the country presents small deviations", caption = "Source: U.S. Department of Housing and Urban Development (HUD)")+
+  labs(title = "High proportion of homeless per capita presented\nin west coast states and New York",       subtitle = "Rest of the country presents small deviations", caption = "Source: U.S. Department of Housing and Urban Development (HUD)")+
   homeless_map_theme
 
 
@@ -389,7 +391,7 @@ ggplot(data = homeless_and_geog_states) +
 During the following study we will try to understand if rich states experience more or less homelessness. Generally speaking, we can see that there is no trend.
 
 
-```{r, message=FALSE, warning=FALSE}
+```{r, message=FALSE, warning=FALSE, fig.height = 4, fig.width = 7}
 
 #Load data of GDP per states
 gdp_state <- read_excel("Data/qgdpstate1118.xlsx", sheet=4, range = "A5:H64")
@@ -442,11 +444,11 @@ plot(homeless_and_gdp_plot)
 ```
 
 ##Homelessness and Resources
-The Department of Housing and Urban development of the US assigns funding to the different states to support programs aiming to buid home for all their citizens. Among these programs there is the The Continuum of Care (CoC) Program, designed to promote communitywide commitment to the goal of ending homelessness.
+The Department of Housing and Urban development of the US assigns funding to the different states to support programs aiming to build home for all their citizens. Among these programs there is the The Continuum of Care (CoC) Program, designed to promote community wide commitment to the goal of ending homelessness.
 
 In the following graph we will study amount of homeless in states and their allocation of resources for CoC program. As we would have expected, states with big amount of homeless receive more allocations.
 
-```{r, message=FALSE, warning =FALSE}
+```{r, message=FALSE, warning =FALSE, fig.height = 4, fig.width = 7}
 
 #Load data of grants to CoC programs
 grants <- read_excel("Data/Grantee_Awards_01272019_10472470.xlsx", sheet=1, range = "A4:G7248") 
@@ -517,7 +519,13 @@ NY_shp <- st_read("Data/NewYork/nynta_18d/nynta.shp")
 
 homeless_ny <-read.csv("Data/NewYork/Directory_Of_Homeless_Population_By_Year.csv")[25:29,2:3]
 drop_in_centers_ny <-read.csv("Data/NewYork/Directory_Of_Homeless_Drop-_In_Centers.csv")
+
+
 homebase_locations_ny <-read.csv("Data/NewYork/Directory_Of_Homebase_Locations.csv") 
+
+homebase_locations_ny <- homebase_locations_ny %>% mutate(Type="Homebase")
+drop_in_centers_ny <- drop_in_centers_ny %>% mutate(Type="Drop in center")
+
   
 homeless_ny <- homeless_ny %>%
   separate(1,c(NA,"BoroName"), sep = "-")
@@ -536,7 +544,7 @@ world <- ne_countries(scale = "medium", returnclass = "sf")
 
 ggplot(data=world) +
   geom_sf()+
-  geom_sf(data = NY_shp_with_homeless, aes(fill=Homeless.Estimates))+
+  geom_sf(data = NY_shp_with_homeless, aes(fill=Homeless.Estimates))+#include factor if want discrete legend
   
   annotate(geom = "label", x = -73.9, y = 40.9, label = "Bronx", 
     fontface = "italic", color = "grey22", size = 3)+
@@ -549,12 +557,23 @@ ggplot(data=world) +
   annotate(geom = "label", x = -74.15, y = 40.6, label = "Staten Island", 
     fontface = "italic", color = "grey22", size = 3)+
   
-  geom_point(data = homebase_locations_ny, aes(x = Longitude, y = Latitude), size = 3, shape = 23, fill = "darkred")+
-  geom_point(data = drop_in_centers_ny, aes(x = Longitude, y = Latitude), size = 3, colour = "blue")+
+  geom_point(data = homebase_locations_ny, aes(x = Longitude, y = Latitude, shape = Type), size = 3, colour = "blue")+
+  geom_point(data = drop_in_centers_ny, aes(x = Longitude, y = Latitude, shape=Type), size = 3, colour = "blue")+
   coord_sf(xlim = c(-74.3, -73.6), ylim = c(40.5, 40.95), expand = FALSE)+
-  labs(title = "Manhattan presents low # homeless  centers\nconsidering homeless population compared to\nother areas in New York",       subtitle = "Drop in centers (blue) and Homeless Prevention Network offices (red)\nnot disrtibuted in city according to unsheltered", caption = "Source: City of New York Open Data Portal")+
+  labs(title = "Manhattan presents low number of homeless  centers\nproportional to its homeless population",       subtitle = "Drop in centers for sleeping and Homeless prevention network offices (homebase)\nare not disrtibuted through the city according to unsheltered populations distribution", caption = "Source: City of New York Open Data Portal")+
   homeless_map_theme+
   scale_fill_gradientn(
     colors = cols,
-    aesthetics = "fill")
+    aesthetics = "fill",
+    name = "Unsheltered homeless")
+#  guides(fill=guide_legend(title="Unsheltered homeless"))
+
+
+ # scale_fill_manual(values=cols)
+
+#queens staten #1a9641
+#brooklyn #c8e762
+#bronx #5eb151
+#manhatamm #d7191c
+
 ```
