@@ -44,9 +44,13 @@ loadfonts()
 
 #Declaration of color palletes and themes
 
-#Color pallete we will be using
-#Source: http://colorbrewer2.org. 5 data classes, diverging nature of data, 8t color scheme  
-cols <- c("#1a9641","#a6d96a","#ffff4f","#fdae61","#d7191c") 
+
+#Discrete color pallete create in color.adobe.com Inspired by http://colorbrewer2.org/#type=qualitative&scheme=Set1&n=5
+disc_cols <- c("#E41A1C","#4276BF","#43BB38","#A73EA3","#FFA600")
+#Continuous color pallete created using Chroma.js, using 3 colors of the discrete pallete to generate 5 steps continuous pallete
+cont_cols <- c("#43bb38","#b2b524","#ffa600","#f36e16","#e41a1c")
+
+
 
 homeless_theme <- 
   theme(title = element_text(family="Constantia"),
@@ -58,7 +62,6 @@ homeless_theme <-
         panel.grid.major = element_line(size = 0.5),
         panel.grid.minor = element_line(size = 0.1),
         panel.background = element_rect(fill='white')#,
-        #axis.text  = element_text(size=10)
         )
 
 homeless_map_theme <- 
@@ -176,7 +179,7 @@ homeless_time_plot<-
   labs(title = "Decline of total homeless in USA during last decade",
        subtitle = "Unsheltered homeless population has shown steeper decline than sheltered", caption = "Source: U.S. Department of Housing and Urban Development (HUD)",x = "Years")+
   homeless_theme+
-  scale_color_manual(values = c("#d7191c","#a6d96a","#1a9641"))
+  scale_color_manual(values = c(cont_cols[5], cont_cols[1], cont_cols[2]))
 
 #Visualize
 plot(homeless_time_plot)
@@ -251,13 +254,13 @@ positions <- c("Male/Female","Sheltered/Unsheltered","Alone/In families", "Tempo
 ggplot(data = classifications, aes(x = Classification, y = Quantity, fill = Type)) +
   geom_bar(stat = "identity",width = 0.5)+
  coord_flip()+
- scale_fill_manual(values = c(cols[5],cols[5], cols[5],cols[1], cols[1],cols[1], cols[5],cols[1]))+
+ scale_fill_manual(values = c(disc_cols[3],disc_cols[3], disc_cols[3],disc_cols[1], disc_cols[1],disc_cols[1], disc_cols[3],disc_cols[1]))+
   geom_text(aes(label=percent(Quantity)),size = 4, position = position_stack(vjust = 0.5))+
   scale_x_discrete(limits = positions)+
   homeless_theme +
   theme(legend.position="none")+
-  labs(title = "Majority of homeless are temporary,\nsheltered, alone and male",
-       subtitle = "Data ratifies homelessness is not a permanent experience\nfor most people", caption = "Source: U.S. Department of Housing and Urban Development (HUD)",x = "", y="Percentage")
+  labs(title = "Majority of homeless are temporary, sheltered, alone and male",
+       subtitle = "Data ratifies homelessness is not a permanent experience for most people", caption = "Source: U.S. Department of Housing and Urban Development (HUD)",x = "", y="Percentage")
 
 
 ```
@@ -286,7 +289,7 @@ names(races_proportions)[3]<- "Homeless composition"
 
 
 waffle <- 
-  waffle(homeless_proportion*10, rows=20, size=0.6, colors=cols,  xlab="1 square is 0.1% of homeless population")+
+  waffle(homeless_proportion*10, rows=20, size=0.6, colors=disc_cols,  xlab="1 square is 0.1% of homeless population")+
   homeless_theme+
   labs(caption="Source: U.S. Department of Housing and Urban Development (HUD)")+
   annotate("label", x = 4, y = 1.3, label = "48.9%",fontface = "bold",size=4)+
@@ -305,7 +308,7 @@ parall_coord <-
     scale_size_identity()+
     homeless_theme+
     scale_y_continuous(breaks=c(0,10,20,30,40,50,60,70,80))+
-    scale_color_manual(values = c("White"=cols[1], "Black or African American"=cols[2],"Native American"=cols[3],"Asian"=cols[4],"Other races"=cols[5]),breaks=c("White", "Black or African American","Native American","Asian","Other races"))+
+    scale_color_manual(values = c("White"=disc_cols[1], "Black or African American"=disc_cols[2],"Native American"=disc_cols[3],"Asian"=disc_cols[4],"Other races"=disc_cols[5]),breaks=c("White", "Black or African American","Native American","Asian","Other races"))+
     labs(title="Black/African american race is overrepresented in homeless population\nconsidering its proportion in the country", subtitle="While only ~13% of Americans are Black/African american, they represent ~40%\nof homeless population. Opposite happens with white americans.",x='',y="Percentage (%)")+
     theme(panel.grid.minor = element_blank(),legend.position="none")
 
@@ -350,7 +353,7 @@ ggplot(data=homeless_and_population, aes(x=reorder(State, -homeless_per_100000),
     expand=c(0,0)
     )+
   scale_fill_gradientn(
-    colors = cols,
+    colors = cont_cols,
     aesthetics = "fill", name = "Homeless every 100,000 people")+
     homeless_theme+
     theme(
@@ -379,7 +382,7 @@ homeless_and_geog_states <-
 ggplot(data = homeless_and_geog_states) + 
   geom_sf(aes(fill=homeless_per_100000))+
   coord_sf(xlim = c(-124.7844079, -66.9513812), ylim = c(49.3457868, 24.7433195), expand = FALSE)+
-  scale_fill_gradientn(colors = cols, aesthetics = "fill", name = "Homeless every 100,000 people")+
+  scale_fill_gradientn(colors = cont_cols, aesthetics = "fill", name = "Homeless every 100,000 people")+
   geom_text(#Could use geom_text_repel, but shows many ugly useless lines
     aes(label = STUSPS, geometry = geometry),
     size=3,
@@ -435,12 +438,12 @@ homeless_population_and_gdp <-
 homeless_and_gdp_plot<-
   ggplot(homeless_population_and_gdp,
        aes(x=GDP_per_capita, y=homeless_per_100000))+
-  geom_point(color=cols[2])+
-  geom_smooth(color=cols[1])+
+  geom_point(color=cont_cols[2])+
+  geom_smooth(color=cont_cols[1])+
   geom_text_repel(aes(label=State), vjust = -0.5)+
   scale_y_continuous(name="Homeless every 100,000 people")+
   scale_x_continuous(name="GDP per capita (thousands USD)")+
-  labs(title = "No relationship between homeless and\nGDP per capita",
+  labs(title = "No relationship between homeless and GDP per capita",
        subtitle = "States with significant difference in GDP/capita may experience same level of homelessness", caption = "Source: U.S. HUD, U.S. Bureau of Economic Analysis")+
   homeless_theme
 
@@ -453,7 +456,7 @@ The Department of Housing and Urban development of the US assigns funding to the
 
 In the following graph we will study amount of homeless in states and their allocation of resources for CoC program. As we would have expected, states with big amount of homeless receive more allocations.
 
-```{r, message=FALSE, fig.align='center', fig.height = 5, fig.width = 10}
+```{r, warning = FALSE, message=FALSE, fig.align='center', fig.height = 5, fig.width = 10}
 
 #Load data of grants to CoC programs
 grants <- read_excel("Data/Grantee_Awards_01272019_10472470.xlsx", sheet=1, range = "A4:G7248") 
@@ -477,8 +480,8 @@ states_over_5000 <- pit_by_state %>%
 homeless_and_grants_plot_CA_NY<-
   ggplot(homeless_and_grants,
          aes(x=Overall.Homeless..2018/1000, y=`Award Amount`/1000000))+
-  geom_point(color=cols[2])+
-  geom_smooth(color=cols[1])+
+  geom_point(color=cont_cols[2])+
+  geom_smooth(color=cont_cols[1])+
   geom_text_repel(data = homeless_and_grants[homeless_and_grants$State %in% CA_NY_labels,], aes(label=State), vjust = -0.5)+
   scale_x_continuous(name="",labels=comma)+
   scale_y_continuous(name="",labels=comma)+
@@ -488,8 +491,8 @@ homeless_and_grants_plot_CA_NY<-
 homeless_and_grants_plot_without_outliers <-
        ggplot(data = homeless_and_grants[!homeless_and_grants$State %in% CA_NY_labels,],
        aes(x=Overall.Homeless..2018/1000, y=`Award Amount`/1000000))+
-  geom_point(color=cols[2])+
-  geom_smooth(color=cols[1])+
+  geom_point(color=cont_cols[2])+
+  geom_smooth(color=cont_cols[1])+
   geom_text_repel(data = homeless_and_grants[homeless_and_grants$State %in% states_over_5000$State,],aes(label=State, vjust = -0.5))+
   scale_x_continuous(name="Total homeless (thousands)",labels=comma)+
   scale_y_continuous(name="Funding for Homeless Programs\n(Millions USD)",labels=comma,limit = c(0,140))+
@@ -567,7 +570,7 @@ ggplot(data=world) +
   labs(title = "Manhattan presents low number of homeless  centers\nproportional to its homeless population",       subtitle = "Drop in centers for sleeping and Homeless prevention network offices (homebase)\nare not disrtibuted through the city according to unsheltered populations distribution", caption = "Source: City of New York Open Data Portal")+
   homeless_map_theme+
   scale_fill_gradientn(
-    colors = cols,
+    colors = cont_cols,
     aesthetics = "fill",
     name = "Unsheltered homeless")
 #  guides(fill=guide_legend(title="Unsheltered homeless"))
