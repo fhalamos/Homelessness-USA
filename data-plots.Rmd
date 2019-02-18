@@ -37,6 +37,8 @@ library(rnaturalearth)
 library(GGally)
 library(waffle)
 library(gridExtra)
+library(fiftystater)
+library(mapproj)
 
 
 loadfonts()
@@ -60,7 +62,7 @@ homeless_theme <-
         axis.title = element_text(family="Garamond", size=14),
         panel.grid = element_line(linetype = 'dashed', colour = "black"),
         panel.grid.major = element_line(size = 0.5),
-        panel.grid.minor = element_line(size = 0.1),
+        panel.grid.minor = element_blank(),
         panel.background = element_rect(fill='white')#,
         )
 
@@ -372,26 +374,44 @@ ggplot(data=homeless_and_population, aes(x=reorder(State, -homeless_per_100000),
 It would now be interesting to have a geographical perspective of the differences between the states
 
 ```{r, fig.align='center', fig.height = 5, fig.width = 10, results='hide', fig.keep='all', warning = F, message = F}
-#Load stats shapefile
-#Source: https://www.census.gov/geo/maps-data/data/cbf/cbf_state.html
-states_shp <- st_read("Data/cb_2017_us_state_500k/cb_2017_us_state_500k.shp")
 
-homeless_and_geog_states <-
-  inner_join(states_shp, homeless_and_population, by = c("STUSPS"="State"))
+#Add state column to homeless df with names of state in lower case so as to match with geom_map
+homeless_and_population<-
+  homeless_and_population%>% 
+  mutate(state = "")
 
-ggplot(data = homeless_and_geog_states) + 
-  geom_sf(aes(fill=homeless_per_100000))+
-  coord_sf(xlim = c(-124.7844079, -66.9513812), ylim = c(49.3457868, 24.7433195), expand = FALSE)+
+homeless_and_population$state <- state.name[match(homeless_and_population$State, state.abb)] #Change to state names
+
+homeless_and_population<-
+  homeless_and_population%>% 
+  mutate(state = tolower(state))
+
+
+#funciton to lowert case just frist letter
+simpleCap <- function(x) {
+  s <- strsplit(x, " ")[[1]]
+  paste(toupper(substring(s, 1,1)), substring(s, 2),
+      sep="", collapse=" ")
+}
+
+#Get states codes to show them in the map
+state_codes<-ddply(fifty_states,~id,summarise,lat_mean=mean(lat),long_mean=mean(long))%>%mutate(state=id)
+state_codes$state<-sapply(state_codes$state, simpleCap)
+state_codes$state <- state.abb[match(state_codes$state, state.name)] #Change to state codes
+
+#Only keep certain states of interest
+state_codes_selection <- state_codes %>%
+  filter(state=="NY" | state=="CA"| state=="WA"| state=="OR"| state=="AK"| state=="HI"| state=="NY")
+
+ggplot(homeless_and_population, aes(map_id = state)) + 
+  geom_map(aes(fill = homeless_per_100000), map = fifty_states, color = "black") + 
+  expand_limits(x = fifty_states$long, y = fifty_states$lat) +
+  coord_map()+
+  labs(title = "High proportion of homeless per capita presented\nin west coast states, New York, Alaska and Hawaii",       subtitle = "Rest of the country presents small deviations", caption = "Source: U.S. Department of Housing and Urban Development (HUD)")+
   scale_fill_gradientn(colors = cont_cols, aesthetics = "fill", name = "Homeless every 100,000 people")+
-  geom_text(#Could use geom_text_repel, but shows many ugly useless lines
-    aes(label = STUSPS, geometry = geometry),
-    size=3,
-    stat = "sf_coordinates",
-    #min.segment.length = 0
-  )+
-  labs(title = "High proportion of homeless per capita presented\nin west coast states and New York",       subtitle = "Rest of the country presents small deviations", caption = "Source: U.S. Department of Housing and Urban Development (HUD)")+
-  homeless_map_theme
-
+  homeless_map_theme+
+  geom_label(data = state_codes_selection, aes(x = long_mean, y = lat_mean, label = state))+
+  coord_map("albers",lat0=39, lat1=45)
 
 ```
 
