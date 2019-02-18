@@ -172,16 +172,19 @@ total_sh_and_unsh <- gather(total_sh_and_unsh, key = "Type", value = "Quantity" 
 
 #Plotting total n_homeless for different years
 homeless_time_plot<-
-  ggplot(total_sh_and_unsh, aes(x=Year, y=Quantity, group=Type,colour = Type))+
+  ggplot(total_sh_and_unsh, aes(x=Year, y=Quantity/1000, group=Type,colour = Type))+
   geom_line(linetype = "solid",size=1.5)+
   geom_point(size=3)+
-  scale_y_continuous(name="Number of homeless",labels=comma)+
+  scale_y_continuous(name="Number of homeless\n(thousands)",labels=comma)+
   scale_x_continuous(breaks = c(2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018))+
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
   labs(title = "Decline of total homeless in USA during last decade",
        subtitle = "Unsheltered homeless population has shown steeper decline than sheltered", caption = "Source: U.S. Department of Housing and Urban Development (HUD)",x = "Years")+
   homeless_theme+
-  scale_color_manual(values = c(cont_cols[5], cont_cols[1], cont_cols[2]))
+  scale_color_manual(values = c(cont_cols[5], cont_cols[1], cont_cols[2]),name = "")+
+  annotate(geom = "label", x = 2017, y = 505, label = "Slight increase\nin recent years", fontface = "italic", color = "grey22", size = 4)+
+  annotate(geom = "label", x = 2014.5, y = 630, label = "Significant decrease\nin 2012 (5%)", fontface = "italic", color = "grey22", size = 4)+
+  theme(legend.position = "top")
 
 #Visualize
 plot(homeless_time_plot)
@@ -289,7 +292,9 @@ waffle_country <-
   annotate("label", x = 6, y = 1.3, label = "76.6%",size=3.5)+
   annotate("label", x = 45, y = 1.3, label = "13.4%",size=3.5)+
   theme(legend.position="none")+
-  labs(title="Black/African american race is overrepresented in homeless population\nconsidering its proportion in the country", subtitle="While only ~13% of Americans are Black/African american, they represent ~40% of homeless population.\nOpposite happens with white americans and asians.")
+  labs(title="Black/African american race is overrepresented in homeless population\nconsidering its proportion in the country", subtitle="While only ~13% of Americans are Black/African american, they represent ~40% of homeless population.\nOpposite happens with white americans and asians.")+
+  theme(legend.position="none")
+
 
 
 
@@ -299,6 +304,7 @@ waffle_homeless <-
   annotate("label", x = 5, y = 1.3, label = "48.9%",size=3.5)+
   annotate("label", x = 31, y = 1.3, label = "39.8%",size=3.5)+
   homeless_theme
+
 
 parall_coord <- 
   ggparcoord(data = races_proportions,
